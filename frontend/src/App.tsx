@@ -1,32 +1,88 @@
+import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { useAuthStore } from '@store/authStore'
 
-function App() {
+// Pages
+import { LoginPage, RegistrationPage } from '@pages/auth'
+import { DashboardPage } from '@pages/dashboard'
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+})
+
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated } = useAuthStore()
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+  
+  return <>{children}</>
+}
+
+const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated } = useAuthStore()
+  
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />
+  }
+  
+  return <>{children}</>
+}
+
+const App: React.FC = () => {
   return (
-    <Router>
-      <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600">
-        <div className="container mx-auto px-4 py-8">
-          <div className="bg-white rounded-lg shadow-xl p-8 max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold text-gray-800 mb-4">
-              🎉 Purchase Order Management System
-            </h1>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-blue-800">⚡ Vite</h3>
-                <p className="text-blue-600 text-sm">Lightning fast development</p>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-green-800">⚛️ React 18</h3>
-                <p className="text-green-600 text-sm">Modern React with TypeScript</p>
-              </div>
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-purple-800">🎨 Tailwind</h3>
-                <p className="text-purple-600 text-sm">Beautiful, responsive UI</p>
-              </div>
-            </div>
-          </div>
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <div className="App">
+          <Routes>
+            <Route 
+              path="/login" 
+              element={
+                <PublicRoute>
+                  <LoginPage />
+                </PublicRoute>
+              } 
+            />
+            <Route 
+              path="/register" 
+              element={
+                <PublicRoute>
+                  <RegistrationPage />
+                </PublicRoute>
+              } 
+            />
+
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              } 
+            />
+
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
         </div>
-      </div>
-    </Router>
+
+        {import.meta.env.DEV && (
+          <ReactQueryDevtools 
+            initialIsOpen={false} 
+            position="bottom"
+          />
+        )}
+      </Router>
+    </QueryClientProvider>
   )
 }
 
