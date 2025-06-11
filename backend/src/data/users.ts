@@ -1,4 +1,4 @@
-import { query } from '../db'
+import { query } from '../db/index'
 
 export interface User {
   id: string
