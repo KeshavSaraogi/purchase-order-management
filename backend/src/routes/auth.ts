@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { users, User } from '../data/users.ts'
+import { findUserByEmail, createUser, User } from '../data/users.ts'
 
 const router = express.Router()
 
@@ -17,7 +17,7 @@ router.post('/login', async (req: Request, res: Response) => {
       })
     }
 
-    const user = users.find(u => u.email === email)
+    const user = await findUserByEmail(email)
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -70,7 +70,7 @@ router.post('/register', async (req: Request, res: Response) => {
       })
     }
 
-    const existingUser = users.find(u => u.email === email)
+    const existingUser = await findUserByEmail(email)
     if (existingUser) {
       return res.status(409).json({
         success: false,
@@ -80,8 +80,7 @@ router.post('/register', async (req: Request, res: Response) => {
 
     const hashedPassword = await bcrypt.hash(password, 12)
 
-    const newUser: User = {
-      id: `user_${Date.now()}`,
+    const newUser = await createUser({
       name: `${firstName} ${lastName}`,
       email,
       phone: phone || '',
@@ -89,11 +88,7 @@ router.post('/register', async (req: Request, res: Response) => {
       employeeId: employeeId || '',
       role: role as any,
       password: hashedPassword,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-
-    users.push(newUser)
+    })
 
     const token = jwt.sign(
       { userId: newUser.id, email: newUser.email },
