@@ -15,17 +15,13 @@ app.use(cors({
   origin: 'http://localhost:3000',
   credentials: true
 }))
+
 app.use(morgan('combined'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 // Routes
 app.use('/api/auth', authRoutes)
-
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Purchase Management API is running' })
-})
 
 app.get('/', (req, res) => {
   res.json('Welcome to the Purchase Management API');
