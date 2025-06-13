@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from 'express'
+import express, { Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { findUserByEmail, createUser, User } from '../data/users'

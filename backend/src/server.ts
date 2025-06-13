@@ -27,6 +27,10 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Purchase Management API is running' })
 })
 
+app.get('/', (req, res) => {
+  res.json('Welcome to the Purchase Management API');
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
