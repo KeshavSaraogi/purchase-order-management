@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { Eye, EyeOff, Lock, Mail, Building2, ArrowRight } from 'lucide-react'
@@ -8,7 +7,6 @@ import { api } from '@services/api'
 const LoginPage = () => {
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
-  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false)
 
   const [formData, setFormData] = useState({
@@ -19,15 +17,14 @@ const LoginPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
+    
     try {
       const payload = {
         email: formData.email,
         password: formData.password
       };
 
-      const response = await axios.post(`/api/login`, payload);
+      const response = await api.post(`/api/login`, payload);
       const user = response.data.user;
       login(user, '');
       navigate('/dashboard');
@@ -35,8 +32,6 @@ const LoginPage = () => {
     } catch (err: any) {
       console.error("❌ Login failed:", err.response?.data?.message || err.message);
       alert(err.response?.data?.message || "Invalid credentials");
-    } finally {
-      setLoading(false);
     }
   };
 
