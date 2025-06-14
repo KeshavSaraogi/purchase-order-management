@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
+import axios from 'axios'
 import { Eye, EyeOff, Lock, Mail, User, Building, Phone, ArrowRight, Check } from 'lucide-react'
 
 const RegistrationPage = () => {
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
@@ -32,8 +34,41 @@ const RegistrationPage = () => {
   const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 3))
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1))
 
-  const handleSubmit = () => {
-    console.log('Registration data:', formData)
+  const handleSubmit = async () => {
+    setLoading(true);
+    try{
+        if (formData.password !== formData.confirmPassword) {
+        alert("Passwords do not match");
+        return;
+      }
+
+      if (!formData.agreeToTerms) {
+        alert("Please agree to terms and conditions");
+        return;
+      }
+
+      try {
+        const payload = {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          department: formData.department,
+          password: formData.password
+        };
+
+        const response = await axios.post('http://localhost:5001/api/register', payload);
+
+        console.log("✅ Registration successful:", response.data);
+        alert("Registration successful!");
+      } catch (err: any) {
+        console.error("❌ Registration failed:", err.response?.data || err.message);
+        alert(err.response?.data?.message || "Something went wrong");
+      }
+    }
+    finally {
+      setLoading(false);
+    }
   }
 
   const departments = [
@@ -375,9 +410,14 @@ const RegistrationPage = () => {
               ) : (
                 <button
                   onClick={handleSubmit}
-                  className="flex items-center px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-medium rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg group"
+                  disabled={loading}
+                  className={`flex items-center px-6 py-3 rounded-xl font-medium transition-all duration-200 transform group
+                    ${loading 
+                      ? 'bg-gray-400 text-white cursor-not-allowed' 
+                      : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 hover:-translate-y-0.5 hover:shadow-lg'}
+                  `}
                 >
-                  Create Account
+                  {loading ? 'Creating Account...' : 'Create Account'}
                   <Check className="ml-2 h-4 w-4 group-hover:scale-110 transition-transform" />
                 </button>
               )}

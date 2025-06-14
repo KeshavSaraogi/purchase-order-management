@@ -1,4 +1,5 @@
 import express from 'express';
+import bcrypt from 'bcryptjs';
 import { 
   createUser, 
   findUserByEmail, 
@@ -7,28 +8,51 @@ import {
 
 const router = express.Router();
 
-router.post('/api/register', async (req, res) => {
+router.post('/register', async (req, res) => {
   try {
-    const { name, email, phone, department, employeeId, role, password } = req.body;
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      department,
+      password
+    } = req.body;
+
+    if (!firstName || !lastName || !email || !phone || !department || !password) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
 
     const existingUser = await findUserByEmail(email);
     if (existingUser) {
       return res.status(409).json({ message: 'User already exists' });
     }
 
-    const user = await createUser({
-      name,
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await createUser({
+      name: `${firstName} ${lastName}`,
       email,
       phone,
       department,
-      employeeId,
-      role,
-      password
+      employeeId: '',
+      role: 'purchaser',
+      password: hashedPassword
     });
 
-    res.status(201).json({ message: 'User registered successfully', user });
+    res.status(201).json({
+      message: 'Registration successful',
+      user: {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        phone: newUser.phone,
+        department: newUser.department,
+        role: newUser.role
+      }
+    });
+
   } catch (err) {
-    console.error(err);
+    console.error('Registration error:', err);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
