@@ -1,5 +1,4 @@
 import express from 'express';
-import bcrypt from 'bcryptjs';
 import { 
   createUser, 
   findUserByEmail, 
@@ -10,14 +9,7 @@ const router = express.Router();
 
 router.post('/register', async (req, res) => {
   try {
-    const {
-      firstName,
-      lastName,
-      email,
-      phone,
-      department,
-      password
-    } = req.body;
+    const { firstName, lastName, email, phone, department, password } = req.body;
 
     if (!firstName || !lastName || !email || !phone || !department || !password) {
       return res.status(400).json({ message: 'All fields are required' });
@@ -28,7 +20,6 @@ router.post('/register', async (req, res) => {
       return res.status(409).json({ message: 'User already exists' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await createUser({
       name: `${firstName} ${lastName}`,
       email,
@@ -36,7 +27,7 @@ router.post('/register', async (req, res) => {
       department,
       employeeId: '',
       role: 'purchaser',
-      password: hashedPassword
+      password
     });
 
     res.status(201).json({
@@ -45,9 +36,9 @@ router.post('/register', async (req, res) => {
         id: newUser.id,
         name: newUser.name,
         email: newUser.email,
-        phone: newUser.phone,
+        role: newUser.role,
         department: newUser.department,
-        role: newUser.role
+        phone: newUser.phone
       }
     });
 
@@ -57,18 +48,33 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.post('/api/login', async (req, res) => {
+
+router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password required' });
+    }
 
     const user = await validateUser(email, password);
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    res.status(200).json({ message: 'Login successful', user });
+    res.status(200).json({
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        department: user.department,
+        phone: user.phone
+      }
+    });
+
   } catch (err) {
-    console.error(err);
+    console.error('Login error:', err);
     res.status(500).json({ message: 'Internal server error' });
   }
 });

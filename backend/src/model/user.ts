@@ -1,4 +1,4 @@
-import { query } from '../db/index';
+import { supabase } from '../db/index';
 import bcrypt from 'bcryptjs';
 
 export interface User {
@@ -10,8 +10,8 @@ export interface User {
   employeeId: string;
   role: 'admin' | 'manager' | 'purchaser' | 'viewer';
   password: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface CreateUserInput {
@@ -25,28 +25,32 @@ export interface CreateUserInput {
 }
 
 export async function findUserByEmail(email: string): Promise<User | null> {
-  const result = await query('SELECT * FROM users WHERE email = $1', [email]);
-  return result.rows[0] || null;
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('email', email)
+    .single();
+
+  if (error) {
+    return null;
+  }
+  return data as User;
 }
 
 export async function createUser(input: CreateUserInput): Promise<User> {
   const hashedPassword = await bcrypt.hash(input.password, 10);
+  
+  const { data, error } = await supabase
+    .from('users')
+    .insert([
+      { ...input, password: hashedPassword }
+    ])
+    .single();
 
-  const result = await query(
-    `INSERT INTO users (name, email, phone, department, employee_id, role, password)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
-     RETURNING *`,
-    [
-      input.name,
-      input.email,
-      input.phone,
-      input.department,
-      input.employeeId,
-      input.role,
-      hashedPassword
-    ]
-  );
-  return result.rows[0];
+  if (error) {
+    throw error;
+  }
+  return data as User;
 }
 
 export async function validateUser(email: string, password: string): Promise<User | null> {

@@ -409,17 +409,17 @@ const RegistrationPage = () => {
                 </button>
               ) : (
                 <button
-                  onClick={handleSubmit}
-                  disabled={loading}
-                  className={`flex items-center px-6 py-3 rounded-xl font-medium transition-all duration-200 transform group
-                    ${loading 
-                      ? 'bg-gray-400 text-white cursor-not-allowed' 
-                      : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 hover:-translate-y-0.5 hover:shadow-lg'}
-                  `}
-                >
-                  {loading ? 'Creating Account...' : 'Create Account'}
-                  <Check className="ml-2 h-4 w-4 group-hover:scale-110 transition-transform" />
-                </button>
+                onClick={handleSubmit}
+                disabled={loading}
+                className={`flex items-center px-6 py-3 rounded-xl font-medium transition-all duration-200 transform group
+                  ${loading 
+                    ? 'bg-gray-400 text-white cursor-not-allowed' 
+                    : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 hover:-translate-y-0.5 hover:shadow-lg'}
+                `}
+              >
+                {loading ? 'Creating Account...' : 'Create Account'}
+                <Check className="ml-2 h-4 w-4 group-hover:scale-110 transition-transform" />
+              </button>
               )}
             </div>
           </div>
