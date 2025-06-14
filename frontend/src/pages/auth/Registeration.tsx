@@ -6,25 +6,23 @@ import { useAuthStore } from '@store/authStore';
 
 const RegistrationPage = () => {
   const navigate = useNavigate();
-
+  const login = useAuthStore((state) => state.login);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
+  
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    
-    department: '',
-    employeeId: '',
-    role: '',
-    
-    password: '',
-    confirmPassword: '',
-    agreeToTerms: false
-  })
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  department: '',
+  role: '',
+  password: '',
+  confirmPassword: '',
+  agreeToTerms: false
+})
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
@@ -53,23 +51,23 @@ const RegistrationPage = () => {
 
       try {
         const payload = {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          phone: formData.phone,
-          department: formData.department,
-          password: formData.password,
-          employeedId: formData.employeeId,
-        };
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        phone: formData.phone,
+        department: formData.department,
+        role: formData.role || 'purchaser',
+        password: formData.password
+      };
 
         const response = await axios.post('http://localhost:5001/api/register', payload);
-        const user = 
+        const user = response.data.user;
+        login(user, '');
         navigate('/dashboard');
 
         console.log("✅ Registration successful:", response.data);
         alert("Registration successful!");
       } catch (err: any) {
-        console.error("❌ Registration failed:", err.response?.data || err.message);
+        console.error("Registration failed:", err.response?.data || err.message);
         alert(err.response?.data?.message || "Something went wrong");
       }
     }
@@ -247,20 +245,6 @@ const RegistrationPage = () => {
                       <option key={dept} value={dept}>{dept}</option>
                     ))}
                   </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Employee ID
-                  </label>
-                  <input
-                    name="employeeId"
-                    type="text"
-                    value={formData.employeeId}
-                    onChange={handleInputChange}
-                    className="block w-full px-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-gray-50 focus:bg-white"
-                    placeholder="Enter your employee ID"
-                  />
                 </div>
 
                 <div>

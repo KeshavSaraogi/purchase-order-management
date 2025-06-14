@@ -7,7 +7,6 @@ export interface User {
   email: string;
   phone: string;
   department: string;
-  employeeId: string;
   role: 'admin' | 'manager' | 'purchaser' | 'viewer';
   password: string;
   created_at: string;
@@ -19,7 +18,6 @@ export interface CreateUserInput {
   email: string;
   phone: string;
   department: string;
-  employeeId: string;
   role: 'admin' | 'manager' | 'purchaser' | 'viewer';
   password: string;
 }
@@ -39,13 +37,23 @@ export async function findUserByEmail(email: string): Promise<User | null> {
 
 export async function createUser(input: CreateUserInput): Promise<User> {
   const hashedPassword = await bcrypt.hash(input.password, 10);
-  
+
   const { data, error } = await supabase
     .from('users')
     .insert([
-      { ...input, password: hashedPassword }
+      {
+        name: input.name,
+        email: input.email,
+        phone: input.phone,
+        department: input.department,
+        role: input.role,
+        password: hashedPassword
+      }
     ])
+    .select('*')
     .single();
+
+  console.log("Insert result:", { data, error });
 
   if (error) {
     throw error;

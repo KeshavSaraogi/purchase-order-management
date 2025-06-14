@@ -1,17 +1,13 @@
 import express from 'express';
-import { 
-  createUser, 
-  findUserByEmail, 
-  validateUser 
-} from '../model/user'
+import { createUser, findUserByEmail, validateUser } from '../model/user';
 
 const router = express.Router();
 
 router.post('/register', async (req, res) => {
   try {
-    const { firstName, lastName, email, phone, department, password } = req.body;
+    const { name, email, phone, department, password, role } = req.body;
 
-    if (!firstName || !lastName || !email || !phone || !department || !password) {
+    if (!name || !email || !phone || !department || !password) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
@@ -21,12 +17,11 @@ router.post('/register', async (req, res) => {
     }
 
     const newUser = await createUser({
-      name: `${firstName} ${lastName}`,
+      name,
       email,
       phone,
       department,
-      employeeId: '',
-      role: 'purchaser',
+      role: role || 'purchaser',
       password
     });
 
@@ -48,10 +43,10 @@ router.post('/register', async (req, res) => {
   }
 });
 
-
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password required' });
     }
