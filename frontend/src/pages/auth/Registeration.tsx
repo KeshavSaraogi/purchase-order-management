@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail, User, Building, Phone, ArrowRight, Check } from 'lucide-react'
 import { useAuthStore } from '@store/authStore';
+import { api } from '@services/api'
 
 const RegistrationPage = () => {
   const navigate = useNavigate();
@@ -59,7 +60,7 @@ const RegistrationPage = () => {
         password: formData.password
       };
 
-        const response = await axios.post('http://localhost:5001/api/register', payload);
+        const response = await api.post('/api/register', payload);
         const user = response.data.user;
         login(user, '');
         navigate('/dashboard');
@@ -427,7 +428,7 @@ const RegistrationPage = () => {
           </div>
 
           <div className="mt-6 text-center">
-            <button className="text-primary-600 hover:text-primary-700 font-medium text-sm">
+            <button className="text-primary-600 hover:text-primary-700 font-medium text-sm" onClick={() => navigate('/login')} >
               Sign in to your account →
             </button>
           </div>
