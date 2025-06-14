@@ -1,8 +1,10 @@
-import React, { useState } from 'react'
 import axios from 'axios'
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail, User, Building, Phone, ArrowRight, Check } from 'lucide-react'
 
 const RegistrationPage = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -54,10 +56,12 @@ const RegistrationPage = () => {
           email: formData.email,
           phone: formData.phone,
           department: formData.department,
-          password: formData.password
+          password: formData.password,
+          employeedId: formData.employeeId,
         };
 
         const response = await axios.post('http://localhost:5001/api/register', payload);
+        navigate('/dashboard');
 
         console.log("✅ Registration successful:", response.data);
         alert("Registration successful!");
