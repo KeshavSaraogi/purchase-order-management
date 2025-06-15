@@ -1,43 +1,48 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import morgan from 'morgan';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://purchase-order-management.vercel.app'
+  'https://purchase-order-management.vercel.app',
+  'https://purchase-order-management-fwzl.vercel.app'
 ];
 
-app.use(helmet());
+const normalizeOrigin = (origin: string | undefined): string => {
+  if (!origin) return '';
+  return origin.replace(/\/+$/, '');
+};
 
-app.use(cors({
+const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    const normalizedOrigin = normalizeOrigin(origin);
+    
+    if (!origin || allowedOrigins.includes(normalizedOrigin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
-}));
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
-app.use(morgan('combined'));
+app.use(cors(corsOptions));
+
+app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/api', authRoutes);
 
-app.get('/', (req, res) => {
-  res.json('Welcome to the Purchase Management API');
-});
-
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
