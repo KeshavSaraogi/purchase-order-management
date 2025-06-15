@@ -22,7 +22,7 @@ const normalizeOrigin = (origin: string | undefined): string => {
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
     const normalizedOrigin = normalizeOrigin(origin);
-    
+
     if (!origin || allowedOrigins.includes(normalizedOrigin)) {
       callback(null, true);
     } else {
@@ -31,16 +31,21 @@ const corsOptions: cors.CorsOptions = {
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 };
 
 app.use(cors(corsOptions));
 
 app.use(helmet());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/api', authRoutes);
+
+app.get('/', (req, res) => {
+  res.send('✅ Backend API is running!');
+});
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
