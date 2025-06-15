@@ -21,6 +21,7 @@ const normalizeOrigin = (origin: string | undefined): string => {
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
+    console.log('Request origin:', origin);
     const normalizedOrigin = normalizeOrigin(origin);
 
     if (!origin || allowedOrigins.includes(normalizedOrigin)) {
