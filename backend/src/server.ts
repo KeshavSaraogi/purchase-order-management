@@ -21,7 +21,6 @@ const normalizeOrigin = (origin: string | undefined): string => {
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
-    console.log('Request origin:', origin);
     const normalizedOrigin = normalizeOrigin(origin);
 
     if (!origin || allowedOrigins.includes(normalizedOrigin)) {
@@ -32,23 +31,26 @@ const corsOptions: cors.CorsOptions = {
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
 app.use(cors(corsOptions));
-
 app.use(helmet());
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-app.use('/api', authRoutes);
 
 app.get('/', (req, res) => {
   res.send('✅ Backend API is running!');
 });
 
-const PORT = process.env.PORT || 5001;
+app.use('/api', authRoutes);
+
+const PORT = process.env.PORT;
+
+if (!PORT) {
+  throw new Error('PORT environment variable not set!');
+}
+
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
