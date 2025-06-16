@@ -18,6 +18,7 @@ const allowedOrigins: string[] = [
 ];
 
 const allowedOriginPatterns: RegExp[] = [
+  /^https:\/\/purchase-order-management\.vercel\.app$/,
   /^https:\/\/purchase-order-management.*\.vercel\.app$/
 ];
 
@@ -28,18 +29,14 @@ const normalizeOrigin = (origin: string | undefined): string => {
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
-    const normalizedOrigin = normalizeOrigin(origin);
-
     if (!origin) {
       callback(null, true);
       return;
     }
 
+    const normalizedOrigin = normalizeOrigin(origin);
     const isAllowedOrigin = allowedOrigins.includes(normalizedOrigin);
-    
-    const isMatchingPattern = allowedOriginPatterns.some(pattern => 
-      pattern.test(normalizedOrigin)
-    );
+    const isMatchingPattern = allowedOriginPatterns.some(pattern => pattern.test(normalizedOrigin));
 
     if (isAllowedOrigin || isMatchingPattern) {
       callback(null, true);
@@ -55,10 +52,7 @@ const corsOptions: cors.CorsOptions = {
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
-app.use(helmet({
-  crossOriginEmbedderPolicy: false
-}));
-
+app.use(helmet({ crossOriginEmbedderPolicy: false }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -94,10 +88,6 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 const PORT = process.env.PORT || 5001;
-
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Allowed origins:`, allowedOrigins);
-  console.log(`🔗 Allowed patterns:`, allowedOriginPatterns);
 });
