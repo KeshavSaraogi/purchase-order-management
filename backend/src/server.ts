@@ -8,24 +8,10 @@ dotenv.config();
 
 const app = express();
 
-const allowedOrigins: string[] = [
-  'http://localhost:3000',
-  'http://localhost:3001',
+const allowedOrigins: (string | RegExp)[] = [
   'https://purchase-order-management.vercel.app',
-  'https://purchase-order-management-fwzl.vercel.app',
-  'https://purchase-order-management-git-main-keshavsaraogis-projects.vercel.app',
-  'https://purchase-order-management-bhxci52jc-keshavsaraogis-projects.vercel.app'
-];
-
-const allowedOriginPatterns: RegExp[] = [
-  /^https:\/\/purchase-order-management\.vercel\.app$/,
   /^https:\/\/purchase-order-management.*\.vercel\.app$/
 ];
-
-const normalizeOrigin = (origin: string | undefined): string => {
-  if (!origin) return '';
-  return origin.replace(/\/+$/, '');
-};
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
@@ -34,14 +20,15 @@ const corsOptions: cors.CorsOptions = {
       return;
     }
 
-    const normalizedOrigin = normalizeOrigin(origin);
-    const isAllowedOrigin = allowedOrigins.includes(normalizedOrigin);
-    const isMatchingPattern = allowedOriginPatterns.some(pattern => pattern.test(normalizedOrigin));
+    const isAllowed = allowedOrigins.some(pattern => {
+      if (typeof pattern === 'string') return pattern === origin;
+      return pattern.test(origin);
+    });
 
-    if (isAllowedOrigin || isMatchingPattern) {
+    if (isAllowed) {
       callback(null, true);
     } else {
-      console.log(`❌ CORS blocked origin: ${normalizedOrigin}`);
+      console.log(`❌ CORS blocked origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
