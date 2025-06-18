@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useAuthStore } from '@store/authStore'
 import { LoginPage, RegistrationPage } from '@pages/auth'
 import { DashboardPage } from '@pages/dashboard'
+import { PurchaseOrdersPage } from '@pages/purchase-orders'
 
 import Layout from '@components/layout/Layout'
 
@@ -80,10 +81,7 @@ const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <div className="p-6">
-                      <h1 className="text-2xl font-bold">Purchase Orders</h1>
-                      <p className="text-gray-600">Purchase orders page coming soon...</p>
-                    </div>
+                    <PurchaseOrdersPage />
                   </Layout>
                 </ProtectedRoute>
               } 
