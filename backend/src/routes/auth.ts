@@ -3,7 +3,7 @@ import express, { Request, Response } from 'express';
 
 const router = express.Router();
 
-router.post('/login', async (req: Request, res: Response) => {
+router.post('/register', async (req: Request, res: Response) => {
   try {
     const { name, email, phone, department, password, role } = req.body;
 
@@ -43,7 +43,7 @@ router.post('/login', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/register', async (req: Request, res: Response) => {
+router.post('/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
