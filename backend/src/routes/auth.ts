@@ -1,9 +1,9 @@
-import express from 'express';
 import { createUser, findUserByEmail, validateUser } from '../model/user';
+import express, { Request, Response } from 'express';
 
 const router = express.Router();
 
-router.post('/register', async (req, res) => {
+router.post('/login', async (req: Request, res: Response) => {
   try {
     const { name, email, phone, department, password, role } = req.body;
 
@@ -43,7 +43,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.post('/login', async (req, res) => {
+router.post('/register', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
