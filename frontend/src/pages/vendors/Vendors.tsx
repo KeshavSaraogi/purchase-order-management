@@ -55,7 +55,6 @@ const VendorsPage: React.FC = () => {
   const [selectedVendors, setSelectedVendors] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
 
-  // Mock data - in real app this would come from API
   const vendors: Vendor[] = [
     {
       id: 'VEN-001',
