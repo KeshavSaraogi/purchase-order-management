@@ -9,7 +9,7 @@ import { PurchaseOrdersPage } from '@pages/purchase-orders'
 import { VendorsPage } from '@pages/vendors'
 import { ItemsPage } from '@pages/items'
 import { ReportsPage } from '@pages/reports'
-
+import { SettingsPage } from '@pages/settings'
 import Layout from '@components/layout/Layout'
 
 const queryClient = new QueryClient({
@@ -128,16 +128,12 @@ const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <div className="p-6">
-                      <h1 className="text-2xl font-bold">Settings</h1>
-                      <p className="text-gray-600">System settings page coming soon...</p>
-                    </div>
+                    <SettingsPage />
                   </Layout>
                 </ProtectedRoute>
               } 
             />
 
-            {/* Redirect Routes */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
