@@ -57,3 +57,17 @@ export async function createDepartment(input: CreateDepartmentInput): Promise<De
     }
     return data as Department;
 }
+
+export async function findDepartmentById(id: string): Promise<Department | null> {
+    const { data, error } = await supabase
+        .from('departments')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+    if ( error ) {
+        return null;
+    }
+
+    return data as Department;
+}
