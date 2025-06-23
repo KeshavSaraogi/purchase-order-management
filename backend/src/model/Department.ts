@@ -34,3 +34,26 @@ export interface UpdateDepartmentInput {
     isActive?: boolean;
 }
 
+export async function createDepartment(input: CreateDepartmentInput): Promise<Department> {
+    const { data, error } = await supabase
+        .from('departments')
+        .insert([
+            {
+                name: input.name,
+                code: input.code.toUpperCase(),
+                description: input.description,
+                manager_id: input.manager_id,
+                budget: input.budget,
+                budget_used: 0,
+                budget_period: input.budget_period,
+                is_active: true,
+            }
+        ])
+        .select('*')
+        .single();
+
+    if (error) {
+        throw error;
+    }
+    return data as Department;
+}
