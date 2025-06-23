@@ -71,3 +71,48 @@ export async function findDepartmentById(id: string): Promise<Department | null>
 
     return data as Department;
 }
+
+export async function findDepartmentByCode(code: string): Promise<Department | null> {
+  const { data, error } = await supabase
+    .from('departments')
+    .select('*')
+    .eq('code', code.toUpperCase())
+    .single();
+
+  if (error) {
+    return null;
+  }
+  return data as Department;
+}
+
+export async function findAllDepartments(): Promise<Department[]> {
+  const { data, error } = await supabase
+    .from('departments')
+    .select('*')
+    .eq('is_active', true)
+    .order('name');
+
+  if (error) {
+    return [];
+  }
+  return data as Department[];
+}
+
+export async function updateDepartment(id: string, input: UpdateDepartmentInput): Promise<Department> {
+  const updateData = { ...input };
+  if (updateData.code) {
+    updateData.code = updateData.code.toUpperCase();
+  }
+
+  const { data, error } = await supabase
+    .from('departments')
+    .update(updateData)
+    .eq('id', id)
+    .select('*')
+    .single();
+
+  if (error) {
+    throw error;
+  }
+  return data as Department;
+}
