@@ -5,7 +5,10 @@ import {
     getDepartmentBudgetStatus,
     CreateDepartmentInput,
     createDepartment, 
-    findDepartmentByCode
+    findDepartmentByCode, 
+    updateDepartment,
+    UpdateDepartmentInput, 
+    updateDepartmentBudgetUsed
 } from '../model/Department';
 
 const router = express.Router();
@@ -118,3 +121,72 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
+// PUT /api/departments/:id - Update department
+router.put('/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const updateData: UpdateDepartmentInput = req.body;
+    
+    // Check if department exists
+    const existingDepartment = await findDepartmentById(id);
+    if (!existingDepartment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Department not found'
+      });
+    }
+    
+    // If updating code, check if new code already exists
+    if (updateData.code && updateData.code !== existingDepartment.code) {
+      const departmentWithCode = await findDepartmentByCode(updateData.code);
+      if (departmentWithCode) {
+        return res.status(409).json({
+          success: false,
+          message: 'Department with this code already exists'
+        });
+      }
+    }
+    
+    const updatedDepartment = await updateDepartment(id, updateData);
+    
+    res.json({
+      success: true,
+      message: 'Department updated successfully',
+      data: updatedDepartment
+    });
+  } catch (error) {
+    console.error('Error updating department:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update department'
+    });
+  }
+});
+
+// PUT /api/departments/:id/budget-used - Update budget used
+router.put('/:id/budget-used', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { amount } = req.body;
+    
+    if (typeof amount !== 'number') {
+      return res.status(400).json({
+        success: false,
+        message: 'Amount must be a number'
+      });
+    }
+    
+    await updateDepartmentBudgetUsed(id, amount);
+    
+    res.json({
+      success: true,
+      message: 'Budget used updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating budget used:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update budget used'
+    });
+  }
+});
