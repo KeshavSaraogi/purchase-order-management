@@ -8,7 +8,8 @@ import {
     findDepartmentByCode, 
     updateDepartment,
     UpdateDepartmentInput, 
-    updateDepartmentBudgetUsed
+    updateDepartmentBudgetUsed, 
+    deleteDepartment
 } from '../model/Department';
 
 const router = express.Router();
@@ -190,3 +191,34 @@ router.put('/:id/budget-used', async (req: Request, res: Response) => {
     });
   }
 });
+
+// DELETE /api/departments/:id - Soft delete department
+router.delete('/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    // Check if department exists
+    const existingDepartment = await findDepartmentById(id);
+    if (!existingDepartment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Department not found'
+      });
+    }
+    
+    await deleteDepartment(id);
+    
+    res.json({
+      success: true,
+      message: 'Department deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting department:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete department'
+    });
+  }
+});
+
+export default router;
