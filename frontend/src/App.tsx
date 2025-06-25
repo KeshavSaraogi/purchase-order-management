@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useAuthStore } from '@store/authStore'
 import { LoginPage, RegistrationPage } from '@pages/auth'
 import { DashboardPage } from '@pages/dashboard'
+import DepartmentsPage from '@pages/departments/departments'
 import { PurchaseOrdersPage } from '@pages/purchase-orders'
 import { VendorsPage } from '@pages/vendors'
 import { ItemsPage } from '@pages/items'
@@ -74,6 +75,17 @@ const App: React.FC = () => {
                 <ProtectedRoute>
                   <Layout>
                     <DashboardPage />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+
+            <Route 
+              path="/departments" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <DepartmentsPage />
                   </Layout>
                 </ProtectedRoute>
               } 
