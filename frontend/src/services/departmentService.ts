@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -10,7 +10,6 @@ const api = axios.create({
   },
 });
 
-// Add auth token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('authToken');
   if (token) {
@@ -19,7 +18,6 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle response errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -32,7 +30,7 @@ export interface Department {
   id: string;
   name: string;
   code: string;
-  description?: string;
+  description?: string | undefined;
   manager_id: string;
   budget: number;
   budget_used: number;
@@ -45,7 +43,7 @@ export interface Department {
 export interface CreateDepartmentInput {
   name: string;
   code: string;
-  description?: string;
+  description?: string | undefined;
   manager_id: string;
   budget: number;
   budget_period: 'monthly' | 'quarterly' | 'yearly';
@@ -54,7 +52,7 @@ export interface CreateDepartmentInput {
 export interface UpdateDepartmentInput {
   name?: string;
   code?: string;
-  description?: string;
+  description?: string | undefined;
   manager_id?: string;
   budget?: number;
   budget_used?: number;
@@ -69,16 +67,13 @@ export interface BudgetStatus {
   percentage: number;
 }
 
-// API Response wrapper
 interface ApiResponse<T> {
   success: boolean;
   data?: T;
   message?: string;
 }
 
-// Department Service Functions
 export const departmentService = {
-  // Get all departments
   async getAll(): Promise<Department[]> {
     try {
       const response = await api.get<ApiResponse<Department[]>>('/departments');
@@ -89,7 +84,6 @@ export const departmentService = {
     }
   },
 
-  // Get department by ID
   async getById(id: string): Promise<Department | null> {
     try {
       const response = await api.get<ApiResponse<Department>>(`/departments/${id}`);
@@ -100,7 +94,6 @@ export const departmentService = {
     }
   },
 
-  // Get department budget status
   async getBudgetStatus(id: string): Promise<BudgetStatus | null> {
     try {
       const response = await api.get<ApiResponse<BudgetStatus>>(`/departments/${id}/budget-status`);
@@ -111,7 +104,6 @@ export const departmentService = {
     }
   },
 
-  // Create new department
   async create(departmentData: CreateDepartmentInput): Promise<Department | null> {
     try {
       const response = await api.post<ApiResponse<Department>>('/departments', departmentData);
@@ -122,7 +114,6 @@ export const departmentService = {
     }
   },
 
-  // Update department
   async update(id: string, updateData: UpdateDepartmentInput): Promise<Department | null> {
     try {
       const response = await api.put<ApiResponse<Department>>(`/departments/${id}`, updateData);
@@ -133,7 +124,6 @@ export const departmentService = {
     }
   },
 
-  // Update budget used
   async updateBudgetUsed(id: string, amount: number): Promise<boolean> {
     try {
       await api.put(`/departments/${id}/budget-used`, { amount });
@@ -144,7 +134,6 @@ export const departmentService = {
     }
   },
 
-  // Delete department
   async delete(id: string): Promise<boolean> {
     try {
       await api.delete(`/departments/${id}`);
@@ -156,7 +145,6 @@ export const departmentService = {
   },
 };
 
-// Export individual functions for convenience
 export const {
   getAll: getAllDepartments,
   getById: getDepartmentById,

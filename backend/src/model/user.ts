@@ -68,3 +68,16 @@ export async function validateUser(email: string, password: string): Promise<Use
   const isMatch = await bcrypt.compare(password, user.password);
   return isMatch ? user : null;
 }
+
+export async function findUserById(id: string): Promise<User | null> {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    return null;
+  }
+  return data as User;
+}
