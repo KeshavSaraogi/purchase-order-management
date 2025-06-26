@@ -76,7 +76,7 @@ interface ApiResponse<T> {
 export const departmentService = {
   async getAll(): Promise<Department[]> {
     try {
-      const response = await api.get<ApiResponse<Department[]>>('/departments');
+      const response = await api.get<ApiResponse<Department[]>>('departments');
       return response.data.data || [];
     } catch (error) {
       console.error('Failed to fetch departments:', error);
@@ -86,7 +86,7 @@ export const departmentService = {
 
   async getById(id: string): Promise<Department | null> {
     try {
-      const response = await api.get<ApiResponse<Department>>(`/departments/${id}`);
+      const response = await api.get<ApiResponse<Department>>(`departments/${id}`);
       return response.data.data || null;
     } catch (error) {
       console.error(`Failed to fetch department ${id}:`, error);
@@ -106,7 +106,7 @@ export const departmentService = {
 
   async create(departmentData: CreateDepartmentInput): Promise<Department | null> {
     try {
-      const response = await api.post<ApiResponse<Department>>('/departments', departmentData);
+      const response = await api.post<ApiResponse<Department>>('departments', departmentData);
       return response.data.data || null;
     } catch (error) {
       console.error('Failed to create department:', error);
@@ -116,7 +116,7 @@ export const departmentService = {
 
   async update(id: string, updateData: UpdateDepartmentInput): Promise<Department | null> {
     try {
-      const response = await api.put<ApiResponse<Department>>(`/departments/${id}`, updateData);
+      const response = await api.put<ApiResponse<Department>>(`departments/${id}`, updateData);
       return response.data.data || null;
     } catch (error) {
       console.error(`Failed to update department ${id}:`, error);
@@ -136,7 +136,7 @@ export const departmentService = {
 
   async delete(id: string): Promise<boolean> {
     try {
-      await api.delete(`/departments/${id}`);
+      await api.delete(`departments/${id}`);
       return true;
     } catch (error) {
       console.error(`Failed to delete department ${id}:`, error);
