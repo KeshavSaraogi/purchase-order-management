@@ -1,5 +1,6 @@
 import { createUser, findUserByEmail, validateUser } from '../model/user';
 import express, { Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
@@ -56,6 +57,16 @@ router.post('/login', async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
+    const token = jwt.sign(
+      { 
+        userId: user.id, 
+        email: user.email,
+        role: user.role 
+      },
+      process.env.JWT_SECRET!,
+      { expiresIn: '1d' }
+    );
+
     res.status(200).json({
       message: 'Login successful',
       user: {
@@ -65,7 +76,8 @@ router.post('/login', async (req: Request, res: Response) => {
         role: user.role,
         department: user.department,
         phone: user.phone
-      }
+      },
+      token: token
     });
 
   } catch (err) {
