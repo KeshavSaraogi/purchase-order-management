@@ -1,6 +1,11 @@
 import axios from 'axios';
 
+console.log('Environment check:');
+console.log('import.meta.env.VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+console.log('Final API_BASE_URL:', import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api');
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+console.log('Using API_BASE_URL:', API_BASE_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -76,7 +81,7 @@ interface ApiResponse<T> {
 export const departmentService = {
   async getAll(): Promise<Department[]> {
     try {
-      const response = await api.get<ApiResponse<Department[]>>('departments');
+      const response = await api.get<ApiResponse<Department[]>>('/departments');
       return response.data.data || [];
     } catch (error) {
       console.error('Failed to fetch departments:', error);
