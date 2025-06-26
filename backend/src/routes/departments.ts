@@ -12,7 +12,7 @@ import {
   getDepartmentBudgetStatus,
   CreateDepartmentInput,
   UpdateDepartmentInput
-} from '../model/Department';
+} from '../model/Department'
 import { findUserById } from '../model/user'
 
 const router = express.Router();
@@ -51,7 +51,7 @@ const authenticateToken = async (req: AuthenticatedRequest, res: Response, next:
     req.user = {
       userId: user.id,
       email: user.email,
-      role: user.role
+      role: user.role.toLowerCase() as 'admin' | 'manager' | 'purchaser' | 'viewer'
     };
     
     next();
@@ -63,7 +63,6 @@ const authenticateToken = async (req: AuthenticatedRequest, res: Response, next:
   }
 };
 
-// Role-based authorization middleware
 const requireRole = (allowedRoles: string[]) => {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
@@ -84,7 +83,6 @@ const requireRole = (allowedRoles: string[]) => {
   };
 };
 
-// Check if user can edit specific department
 const canEditDepartment = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   if (!req.user) {
     return res.status(401).json({
@@ -131,7 +129,6 @@ const canEditDepartment = async (req: AuthenticatedRequest, res: Response, next:
   });
 };
 
-// Routes
 router.get('/', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const departments = await findAllDepartments();
