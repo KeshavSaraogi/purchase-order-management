@@ -25,7 +25,6 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
-// Authentication middleware
 const authenticateToken = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -83,64 +82,23 @@ const requireRole = (allowedRoles: string[]) => {
   };
 };
 
-const canEditDepartment = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  if (!req.user) {
-    return res.status(401).json({
-      success: false,
-      message: 'Authentication required'
-    });
-  }
-
-  const { id } = req.params;
-  
-  if (req.user.role === 'admin') {
-    return next();
-  }
-
-  if (req.user.role === 'manager') {
-    try {
-      const department = await findDepartmentById(id);
-      if (!department) {
-        return res.status(404).json({
-          success: false,
-          message: 'Department not found'
-        });
-      }
-
-      if (department.manager_id !== req.user.userId) {
-        return res.status(403).json({
-          success: false,
-          message: 'You can only edit your own department'
-        });
-      }
-
-      return next();
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: 'Error checking department permissions'
-      });
-    }
-  }
-
-  return res.status(403).json({
-    success: false,
-    message: 'Insufficient permissions to edit departments'
-  });
-};
-
-router.get('/', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
+    console.log('📋 GET /departments called - fetching all departments');
     const departments = await findAllDepartments();
+    
+    console.log(`✅ Found ${departments.length} departments`);
     res.json({
       success: true,
-      data: departments
+      data: departments,
+      message: `Retrieved ${departments.length} departments successfully`
     });
   } catch (error) {
-    console.error('Error fetching departments:', error);
+    console.error('❌ Error fetching departments:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch departments'
+      message: 'Failed to fetch departments',
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });
@@ -148,6 +106,8 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res: Respon
 router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
+    console.log(`📋 GET /departments/${id} called`);
+    
     const department = await findDepartmentById(id);
     
     if (!department) {
@@ -157,12 +117,13 @@ router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Res
       });
     }
     
+    console.log(`✅ Found department: ${department.name}`);
     res.json({
       success: true,
       data: department
     });
   } catch (error) {
-    console.error('Error fetching department:', error);
+    console.error('❌ Error fetching department:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch department'
@@ -205,70 +166,13 @@ router.post('/', authenticateToken, requireRole(['admin']), async (req: Authenti
   }
 });
 
-router.put('/:id', authenticateToken, canEditDepartment, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const { id } = req.params;
-    const updateData: UpdateDepartmentInput = req.body;
-    
-    const existingDepartment = await findDepartmentById(id);
-    if (!existingDepartment) {
-      return res.status(404).json({
-        success: false,
-        message: 'Department not found'
-      });
-    }
-
-    // Non-admin users cannot modify budget or budget period
-    if (req.user!.role !== 'admin') {
-      if (updateData.budget !== undefined || updateData.budget_period !== undefined) {
-        return res.status(403).json({
-          success: false,
-          message: 'Only administrators can modify budget settings'
-        });
-      }
-    }
-
-    const updatedDepartment = await updateDepartment(id, updateData);
-    
-    res.json({
-      success: true,
-      message: 'Department updated successfully',
-      data: updatedDepartment
-    });
-  } catch (error) {
-    console.error('Error updating department:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to update department'
-    });
-  }
-});
-
-router.delete('/:id', authenticateToken, requireRole(['admin']), async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const { id } = req.params;
-    
-    const existingDepartment = await findDepartmentById(id);
-    if (!existingDepartment) {
-      return res.status(404).json({
-        success: false,
-        message: 'Department not found'
-      });
-    }
-
-    await deleteDepartment(id);
-    
-    res.json({
-      success: true,
-      message: 'Department deleted successfully'
-    });
-  } catch (error) {
-    console.error('Error deleting department:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to delete department'
-    });
-  }
+router.get('/test/connection', (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    message: '🎉 Department API connection successful!',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
 });
 
 export default router;

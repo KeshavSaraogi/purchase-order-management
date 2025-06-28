@@ -1,32 +1,55 @@
 import axios from 'axios';
 
-console.log('Environment check:');
-console.log('import.meta.env.VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
-console.log('Final API_BASE_URL:', import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api');
+// Environment detection
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
-console.log('Using API_BASE_URL:', API_BASE_URL);
+const API_BASE_URL = isLocal 
+  ? (import.meta.env.VITE_API_BASE_URL_LOCAL || 'http://localhost:5001/api')
+  : (import.meta.env.VITE_API_BASE_URL || 'https://purchase-order-management-6fb7.onrender.com/api');
+
+console.log('🌍 Environment:', isLocal ? 'Local Development' : 'Production');
+console.log('🔗 Using API_BASE_URL:', API_BASE_URL);
+console.log('📊 Environment variables:');
+console.log('  - VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+console.log('  - VITE_API_BASE_URL_LOCAL:', import.meta.env.VITE_API_BASE_URL_LOCAL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 15000, // Increased timeout for production
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
+// Request interceptor
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('authToken');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  
+  console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
   return config;
 });
 
+// Response interceptor
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(`✅ API Success: ${response.config.method?.toUpperCase()} ${response.config.url}`);
+    return response;
+  },
   (error) => {
-    console.error('API Error:', error.response?.data || error.message);
+    console.error('❌ API Error Details:');
+    console.error('  - Status:', error.response?.status);
+    console.error('  - Data:', error.response?.data);
+    console.error('  - URL:', error.config?.url);
+    console.error('  - Method:', error.config?.method);
+    
+    // Handle specific error cases
+    if (error.response?.status === 401) {
+      console.error('🔒 Authentication required - user may need to login');
+    }
+    
     return Promise.reject(error);
   }
 );
@@ -81,70 +104,115 @@ interface ApiResponse<T> {
 export const departmentService = {
   async getAll(): Promise<Department[]> {
     try {
-      const response = await api.get<ApiResponse<Department[]>>('/departments');
-      return response.data.data || [];
+      console.log('📋 Fetching all departments...');
+      // Fixed: Use correct endpoint path (routes are now at /api/departments)
+      const response = await api.get<ApiResponse<Department[]>>('/');
+      
+      if (response.data.success) {
+        console.log(`✅ Retrieved ${response.data.data?.length || 0} departments`);
+        return response.data.data || [];
+      } else {
+        console.error('❌ API returned success: false');
+        return [];
+      }
     } catch (error) {
-      console.error('Failed to fetch departments:', error);
+      console.error('❌ Failed to fetch departments:', error);
       return [];
     }
   },
 
   async getById(id: string): Promise<Department | null> {
     try {
-      const response = await api.get<ApiResponse<Department>>(`departments/${id}`);
-      return response.data.data || null;
+      console.log(`📋 Fetching department ${id}...`);
+      const response = await api.get<ApiResponse<Department>>(`/${id}`);
+      
+      if (response.data.success) {
+        console.log(`✅ Retrieved department: ${response.data.data?.name}`);
+        return response.data.data || null;
+      } else {
+        console.error('❌ API returned success: false');
+        return null;
+      }
     } catch (error) {
-      console.error(`Failed to fetch department ${id}:`, error);
+      console.error(`❌ Failed to fetch department ${id}:`, error);
       return null;
     }
   },
 
   async getBudgetStatus(id: string): Promise<BudgetStatus | null> {
     try {
-      const response = await api.get<ApiResponse<BudgetStatus>>(`/departments/${id}/budget-status`);
-      return response.data.data || null;
+      console.log(`💰 Fetching budget status for department ${id}...`);
+      const response = await api.get<ApiResponse<BudgetStatus>>(`/${id}/budget-status`);
+      
+      if (response.data.success) {
+        console.log(`✅ Retrieved budget status`);
+        return response.data.data || null;
+      } else {
+        console.error('❌ API returned success: false');
+        return null;
+      }
     } catch (error) {
-      console.error(`Failed to fetch budget status for department ${id}:`, error);
+      console.error(`❌ Failed to fetch budget status for department ${id}:`, error);
       return null;
     }
   },
 
   async create(departmentData: CreateDepartmentInput): Promise<Department | null> {
     try {
-      const response = await api.post<ApiResponse<Department>>('departments', departmentData);
-      return response.data.data || null;
+      console.log(`➕ Creating department: ${departmentData.name}`);
+      const response = await api.post<ApiResponse<Department>>('/', departmentData);
+      
+      if (response.data.success) {
+        console.log(`✅ Created department: ${response.data.data?.name}`);
+        return response.data.data || null;
+      } else {
+        console.error('❌ API returned success: false');
+        return null;
+      }
     } catch (error) {
-      console.error('Failed to create department:', error);
+      console.error('❌ Failed to create department:', error);
       throw error;
     }
   },
 
   async update(id: string, updateData: UpdateDepartmentInput): Promise<Department | null> {
     try {
-      const response = await api.put<ApiResponse<Department>>(`departments/${id}`, updateData);
-      return response.data.data || null;
+      console.log(`📝 Updating department ${id}`);
+      const response = await api.put<ApiResponse<Department>>(`/${id}`, updateData);
+      
+      if (response.data.success) {
+        console.log(`✅ Updated department: ${response.data.data?.name}`);
+        return response.data.data || null;
+      } else {
+        console.error('❌ API returned success: false');
+        return null;
+      }
     } catch (error) {
-      console.error(`Failed to update department ${id}:`, error);
+      console.error(`❌ Failed to update department ${id}:`, error);
       throw error;
     }
   },
 
   async updateBudgetUsed(id: string, amount: number): Promise<boolean> {
     try {
-      await api.put(`/departments/${id}/budget-used`, { amount });
+      console.log(`💰 Updating budget used for department ${id}: ${amount}`);
+      const response = await api.put(`/${id}/budget-used`, { amount });
+      console.log(`✅ Budget updated successfully`);
       return true;
     } catch (error) {
-      console.error(`Failed to update budget used for department ${id}:`, error);
+      console.error(`❌ Failed to update budget used for department ${id}:`, error);
       return false;
     }
   },
 
   async delete(id: string): Promise<boolean> {
     try {
-      await api.delete(`departments/${id}`);
+      console.log(`🗑️ Deleting department ${id}`);
+      await api.delete(`/${id}`);
+      console.log(`✅ Department deleted successfully`);
       return true;
     } catch (error) {
-      console.error(`Failed to delete department ${id}:`, error);
+      console.error(`❌ Failed to delete department ${id}:`, error);
       return false;
     }
   },

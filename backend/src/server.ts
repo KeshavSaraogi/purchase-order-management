@@ -57,7 +57,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api', authRoutes);
-app.use('/', departmentRoutes)
+app.use('/api/departments', departmentRoutes);
 
 app.use('*', (req, res) => {
   res.status(404).json({ 
