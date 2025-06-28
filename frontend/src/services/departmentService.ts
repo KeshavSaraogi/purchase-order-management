@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// Environment detection
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
 const API_BASE_URL = isLocal 
@@ -15,7 +14,7 @@ console.log('  - VITE_API_BASE_URL_LOCAL:', import.meta.env.VITE_API_BASE_URL_LO
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 15000, // Increased timeout for production
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -106,7 +105,7 @@ export const departmentService = {
     try {
       console.log('📋 Fetching all departments...');
       // Fixed: Use correct endpoint path (routes are now at /api/departments)
-      const response = await api.get<ApiResponse<Department[]>>('/');
+      const response = await api.get<ApiResponse<Department[]>>('/departments');
       
       if (response.data.success) {
         console.log(`✅ Retrieved ${response.data.data?.length || 0} departments`);
@@ -124,7 +123,7 @@ export const departmentService = {
   async getById(id: string): Promise<Department | null> {
     try {
       console.log(`📋 Fetching department ${id}...`);
-      const response = await api.get<ApiResponse<Department>>(`/${id}`);
+      const response = await api.get<ApiResponse<Department>>(`/departments/${id}`);
       
       if (response.data.success) {
         console.log(`✅ Retrieved department: ${response.data.data?.name}`);
@@ -160,7 +159,7 @@ export const departmentService = {
   async create(departmentData: CreateDepartmentInput): Promise<Department | null> {
     try {
       console.log(`➕ Creating department: ${departmentData.name}`);
-      const response = await api.post<ApiResponse<Department>>('/', departmentData);
+      const response = await api.post<ApiResponse<Department>>('/departments', departmentData);
       
       if (response.data.success) {
         console.log(`✅ Created department: ${response.data.data?.name}`);
@@ -178,7 +177,7 @@ export const departmentService = {
   async update(id: string, updateData: UpdateDepartmentInput): Promise<Department | null> {
     try {
       console.log(`📝 Updating department ${id}`);
-      const response = await api.put<ApiResponse<Department>>(`/${id}`, updateData);
+      const response = await api.put<ApiResponse<Department>>(`/departments/${id}`, updateData);
       
       if (response.data.success) {
         console.log(`✅ Updated department: ${response.data.data?.name}`);
