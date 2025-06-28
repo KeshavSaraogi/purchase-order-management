@@ -104,8 +104,7 @@ export const departmentService = {
   async getAll(): Promise<Department[]> {
     try {
       console.log('📋 Fetching all departments...');
-      // Fixed: Use correct endpoint path (routes are now at /api/departments)
-      const response = await api.get<ApiResponse<Department[]>>('/departments');
+      const response = await api.get<ApiResponse<Department[]>>('/api/departments'); 
       
       if (response.data.success) {
         console.log(`✅ Retrieved ${response.data.data?.length || 0} departments`);
@@ -123,7 +122,7 @@ export const departmentService = {
   async getById(id: string): Promise<Department | null> {
     try {
       console.log(`📋 Fetching department ${id}...`);
-      const response = await api.get<ApiResponse<Department>>(`/departments/${id}`);
+      const response = await api.get<ApiResponse<Department>>(`/api/departments/${id}`);
       
       if (response.data.success) {
         console.log(`✅ Retrieved department: ${response.data.data?.name}`);
@@ -141,7 +140,7 @@ export const departmentService = {
   async getBudgetStatus(id: string): Promise<BudgetStatus | null> {
     try {
       console.log(`💰 Fetching budget status for department ${id}...`);
-      const response = await api.get<ApiResponse<BudgetStatus>>(`/${id}/budget-status`);
+      const response = await api.get<ApiResponse<BudgetStatus>>(`/api/departments/${id}/budget-status`);
       
       if (response.data.success) {
         console.log(`✅ Retrieved budget status`);
@@ -159,7 +158,7 @@ export const departmentService = {
   async create(departmentData: CreateDepartmentInput): Promise<Department | null> {
     try {
       console.log(`➕ Creating department: ${departmentData.name}`);
-      const response = await api.post<ApiResponse<Department>>('/departments', departmentData);
+      const response = await api.post<ApiResponse<Department>>('/api/departments', departmentData);
       
       if (response.data.success) {
         console.log(`✅ Created department: ${response.data.data?.name}`);
@@ -177,7 +176,7 @@ export const departmentService = {
   async update(id: string, updateData: UpdateDepartmentInput): Promise<Department | null> {
     try {
       console.log(`📝 Updating department ${id}`);
-      const response = await api.put<ApiResponse<Department>>(`/departments/${id}`, updateData);
+      const response = await api.put<ApiResponse<Department>>(`/api/departments/${id}`, updateData);
       
       if (response.data.success) {
         console.log(`✅ Updated department: ${response.data.data?.name}`);
@@ -195,7 +194,8 @@ export const departmentService = {
   async updateBudgetUsed(id: string, amount: number): Promise<boolean> {
     try {
       console.log(`💰 Updating budget used for department ${id}: ${amount}`);
-      await api.put(`/${id}/budget-used`, { amount });
+      await api.put(`/api/departments/${id}/budget-used`, { amount });
+
       console.log(`✅ Budget updated successfully`);
       return true;
     } catch (error) {
@@ -207,7 +207,8 @@ export const departmentService = {
   async delete(id: string): Promise<boolean> {
     try {
       console.log(`🗑️ Deleting department ${id}`);
-      await api.delete(`/${id}`);
+      await api.delete(`/api/departments/${id}`);
+      
       console.log(`✅ Department deleted successfully`);
       return true;
     } catch (error) {
