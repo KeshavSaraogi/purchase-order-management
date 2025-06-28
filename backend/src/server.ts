@@ -56,7 +56,7 @@ app.get('/', (req, res) => {
   });
 });
 
-app.use('/api/auth', authRoutes);
+app.use('/api', authRoutes);
 app.use('/api/departments', departmentRoutes)
 
 app.use('*', (req, res) => {
