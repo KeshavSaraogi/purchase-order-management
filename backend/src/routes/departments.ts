@@ -1,17 +1,17 @@
 import express, { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { supabase } from '../db/index';
+//import { supabase } from '../db/index';
 import {
   createDepartment,
   findAllDepartments,
   findDepartmentById,
   findDepartmentByCode,
-  updateDepartment,
-  updateDepartmentBudgetUsed,
-  deleteDepartment,
-  getDepartmentBudgetStatus,
+//  updateDepartment,
+//  updateDepartmentBudgetUsed,
+//  deleteDepartment,
+//  getDepartmentBudgetStatus,
   CreateDepartmentInput,
-  UpdateDepartmentInput
+//  UpdateDepartmentInput
 } from '../model/Department'
 import { findUserById } from '../model/user'
 

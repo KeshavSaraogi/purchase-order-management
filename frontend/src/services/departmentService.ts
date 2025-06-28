@@ -196,7 +196,7 @@ export const departmentService = {
   async updateBudgetUsed(id: string, amount: number): Promise<boolean> {
     try {
       console.log(`💰 Updating budget used for department ${id}: ${amount}`);
-      const response = await api.put(`/${id}/budget-used`, { amount });
+      await api.put(`/${id}/budget-used`, { amount });
       console.log(`✅ Budget updated successfully`);
       return true;
     } catch (error) {
