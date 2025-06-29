@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail, Building2, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuthStore } from '@store/authStore';
 import { api } from '@services/api';
+import type { User } from '../../types/index';
 
 interface LoginFormData {
   email: string;
@@ -29,13 +30,14 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
   
+  // State management
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   const [formData, setFormData] = useState<LoginFormData>({
-    email: '',
-    password: '',
+    email: 'keshavsaraogi04@gmail.com', // Pre-filled for testing
+    password: 'Admin@123456', // Pre-filled for testing
     rememberMe: false
   });
 
@@ -52,26 +54,32 @@ const LoginPage = () => {
         password: formData.password
       };
 
+      // Make API call to correct login endpoint
       const response = await api.post<LoginResponse>('/api/login', payload);
       
       console.log('📥 Login response:', response.data);
 
+      // Check if login was successful (response contains user and token)
       if (response.data.user && response.data.token) {
         const { user: apiUser, token } = response.data;
         
         console.log('✅ Login successful for user:', apiUser.name);
         console.log('🎫 Token received:', token ? `${token.substring(0, 20)}...` : 'NO TOKEN');
 
-        const user = {
-          ...apiUser,
+        // Transform API user to match User interface (add missing fields)
+        const user: User = {
+          id: apiUser.id,
+          name: apiUser.name,
+          email: apiUser.email,
           role: apiUser.role as 'admin' | 'manager' | 'purchaser' | 'viewer',
-          createdAt: new Date(),
-          updatedAt: new Date()
+          createdAt: new Date(), // Add current date as placeholder
+          updatedAt: new Date()  // Add current date as placeholder
         };
 
         console.log('💾 About to store user and token...');
         console.log('🔍 localStorage BEFORE:', localStorage.getItem('authToken'));
         
+        // Store user and token in auth store (this also saves to localStorage)
         login(user, token);
         
         console.log('✅ Auth store updated');
@@ -79,6 +87,7 @@ const LoginPage = () => {
         
         console.log('✅ User data stored, redirecting to dashboard...');
         
+        // Small delay to ensure localStorage is updated
         setTimeout(() => {
           navigate('/dashboard', { replace: true });
         }, 100);
@@ -90,6 +99,7 @@ const LoginPage = () => {
     } catch (err: any) {
       console.error('❌ Login failed:', err);
       
+      // Handle different types of errors
       if (err.response?.status === 401) {
         setError('Invalid email or password. Please try again.');
       } else if (err.response?.status >= 500) {
@@ -115,6 +125,7 @@ const LoginPage = () => {
       [name]: type === 'checkbox' ? checked : value
     }));
     
+    // Clear error when user starts typing
     if (error) {
       setError('');
     }
@@ -136,6 +147,7 @@ const LoginPage = () => {
             <p className="text-gray-600">Sign in to your Purchase Management account</p>
           </div>
 
+          {/* Error Message */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center space-x-3">
               <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
