@@ -20,12 +20,9 @@ interface ApiUser {
 }
 
 interface LoginResponse {
-  success: boolean;
   message: string;
-  data?: {
-    user: ApiUser;
-    token: string;
-  };
+  user: ApiUser;
+  token: string;
 }
 
 const LoginPage = () => {
@@ -55,30 +52,38 @@ const LoginPage = () => {
         password: formData.password
       };
 
-      const response = await api.post<LoginResponse>('/api/auth/login', payload);
+      const response = await api.post<LoginResponse>('/api/login', payload);
       
       console.log('📥 Login response:', response.data);
 
-      if (response.data.success && response.data.data) {
-        const { user: apiUser, token } = response.data.data;
+      if (response.data.user && response.data.token) {
+        const { user: apiUser, token } = response.data;
         
         console.log('✅ Login successful for user:', apiUser.name);
-        console.log('🎫 Token received, storing in auth store...');
+        console.log('🎫 Token received:', token ? `${token.substring(0, 20)}...` : 'NO TOKEN');
 
         const user = {
           ...apiUser,
           role: apiUser.role as 'admin' | 'manager' | 'purchaser' | 'viewer',
           createdAt: new Date(),
-          updatedAt: new Date() 
+          updatedAt: new Date()
         };
 
+        console.log('💾 About to store user and token...');
+        console.log('🔍 localStorage BEFORE:', localStorage.getItem('authToken'));
+        
         login(user, token);
+        
+        console.log('✅ Auth store updated');
+        console.log('🔍 localStorage AFTER:', localStorage.getItem('authToken'));
         
         console.log('✅ User data stored, redirecting to dashboard...');
         
-        navigate('/dashboard', { replace: true });
+        setTimeout(() => {
+          navigate('/dashboard', { replace: true });
+        }, 100);
       } else {
-        console.error('❌ Login failed: API returned success: false');
+        console.error('❌ Login failed: API response missing user or token');
         setError(response.data.message || 'Login failed. Please try again.');
       }
 
@@ -91,6 +96,8 @@ const LoginPage = () => {
         setError('Server error. Please try again later.');
       } else if (err.response?.data?.message) {
         setError(err.response.data.message);
+      } else if (err.response?.data?.error) {
+        setError(err.response.data.error);
       } else if (err.message) {
         setError(err.message);
       } else {
@@ -129,7 +136,6 @@ const LoginPage = () => {
             <p className="text-gray-600">Sign in to your Purchase Management account</p>
           </div>
 
-          {/* Error Message */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center space-x-3">
               <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
@@ -267,6 +273,7 @@ const LoginPage = () => {
         </div>
       </div>
 
+      {/* Animated background elements */}
       <div className="absolute top-20 left-20 w-20 h-20 bg-white/10 rounded-full blur-xl animate-pulse-slow"></div>
       <div className="absolute bottom-32 right-16 w-32 h-32 bg-white/5 rounded-full blur-xl animate-bounce-subtle"></div>
       <div className="absolute top-1/2 right-20 w-16 h-16 bg-white/10 rounded-full blur-xl animate-pulse-slow" style={{ animationDelay: '1000ms' }}></div>
