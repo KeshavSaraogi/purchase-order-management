@@ -5,12 +5,8 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useAuthStore } from '@store/authStore'
 import { LoginPage, RegistrationPage } from '@pages/auth'
 import { DashboardPage } from '@pages/dashboard'
-import { DepartmentsPage } from '@pages/departments'
-import { PurchaseOrdersPage } from '@pages/purchase-orders'
-import { VendorsPage } from '@pages/vendors'
-import { ItemsPage } from '@pages/items'
-import { ReportsPage } from '@pages/reports'
-import { SettingsPage } from '@pages/settings'
+import DepartmentsPage from '@/pages/departments/departments'
+
 import Layout from '@components/layout/Layout'
 
 const queryClient = new QueryClient({
@@ -81,6 +77,48 @@ const App: React.FC = () => {
             />
 
             <Route 
+              path="/purchase-orders" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <div className="p-6">
+                      <h1 className="text-2xl font-bold">Purchase Orders</h1>
+                      <p className="text-gray-600">Purchase orders page coming soon...</p>
+                    </div>
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+
+            <Route 
+              path="/vendors" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <div className="p-6">
+                      <h1 className="text-2xl font-bold">Vendors</h1>
+                      <p className="text-gray-600">Vendor management page coming soon...</p>
+                    </div>
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+
+            <Route 
+              path="/items" 
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <div className="p-6">
+                      <h1 className="text-2xl font-bold">Items</h1>
+                      <p className="text-gray-600">Item management page coming soon...</p>
+                    </div>
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+
+            <Route 
               path="/departments" 
               element={
                 <ProtectedRoute>
@@ -92,44 +130,14 @@ const App: React.FC = () => {
             />
 
             <Route 
-              path="/purchase-orders" 
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <PurchaseOrdersPage />
-                  </Layout>
-                </ProtectedRoute>
-              } 
-            />
-
-            <Route 
-              path="/vendors" 
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <VendorsPage />
-                  </Layout>
-                </ProtectedRoute>
-              } 
-            />
-
-            <Route 
-              path="/items" 
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <ItemsPage />
-                  </Layout>
-                </ProtectedRoute>
-              } 
-            />
-
-            <Route 
               path="/reports" 
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <ReportsPage />
+                    <div className="p-6">
+                      <h1 className="text-2xl font-bold">Reports</h1>
+                      <p className="text-gray-600">Reports and analytics page coming soon...</p>
+                    </div>
                   </Layout>
                 </ProtectedRoute>
               } 
@@ -140,7 +148,10 @@ const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <Layout>
-                    <SettingsPage />
+                    <div className="p-6">
+                      <h1 className="text-2xl font-bold">Settings</h1>
+                      <p className="text-gray-600">System settings page coming soon...</p>
+                    </div>
                   </Layout>
                 </ProtectedRoute>
               } 

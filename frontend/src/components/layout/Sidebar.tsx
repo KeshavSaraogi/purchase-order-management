@@ -7,12 +7,14 @@ import {
   Package, 
   BarChart3, 
   Settings,
-  Building2
+  Building2,
+  Building
 } from 'lucide-react'
 
 const Sidebar: React.FC = () => {
   const navItems = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/departments', icon: Building, label: 'Departments' },
     { to: '/purchase-orders', icon: ShoppingCart, label: 'Purchase Orders' },
     { to: '/vendors', icon: Users, label: 'Vendors' },
     { to: '/items', icon: Package, label: 'Items' },
@@ -22,7 +24,6 @@ const Sidebar: React.FC = () => {
 
   return (
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
-      {/* Logo */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg flex items-center justify-center mr-3">

@@ -1,54 +1,83 @@
-import React, { useState, useEffect } from 'react';
-import { Building2, Plus, Edit, Trash2, DollarSign, Users, Lock, Eye } from 'lucide-react';
-import { useAuthStore } from '@store/authStore';
-import { departmentService } from '../../services/departmentService';
-import type { Department, CreateDepartmentInput, UpdateDepartmentInput } from '../../services/departmentService';
+import React, { useState, useEffect } from 'react'
+import { 
+  Plus, 
+  Search, 
+  Edit, 
+  Trash2, 
+  ToggleLeft, 
+  ToggleRight, 
+  Building2, 
+  Users, 
+  DollarSign, 
+  TrendingUp,
+  X,
+  Save
+} from 'lucide-react'
+import 
+  departmentService, 
+  Department, 
+  CreateDepartmentInput, 
+  UpdateDepartmentInput, 
+  DepartmentStats 
+} from '@services/departmentService'
 
-const DepartmentsPage: React.FC = () => {
-  const { user } = useAuthStore();
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [showEditForm, setShowEditForm] = useState(false);
-  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
+const DepartmentsPage = () => {
+  const [departments, setDepartments] = useState<Department[]>([])
+  const [stats, setStats] = useState<DepartmentStats | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterActive, setFilterActive] = useState<boolean | undefined>(undefined)
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null)
+
+  // Form state
   const [formData, setFormData] = useState<CreateDepartmentInput>({
     name: '',
     code: '',
     description: '',
     manager_id: '',
     budget: 0,
-    budget_period: 'yearly',
-  });
-
-  const isAdmin = user?.role?.toLowerCase() === 'admin';
-  const isManager = user?.role === 'manager';
-  const canCreate = isAdmin;
-  const canDelete = isAdmin;
-  const canView = true;
-
-  const canEditDepartment = (dept: Department): boolean => {
-    if (isAdmin) return true;
-    if (isManager && dept.manager_id === user?.id) return true;
-    return false;
-  };
+    budget_period: 'yearly'
+  })
 
   useEffect(() => {
-    if (!canView) return;
-    loadDepartments();
-  }, [canView]);
+    loadDepartments()
+    loadStats()
+  }, [searchTerm, filterActive])
 
   const loadDepartments = async () => {
-    setLoading(true);
     try {
-      const data = await departmentService.getAll();
-      setDepartments(data);
+      setLoading(true)
+      const filters = {
+        active: filterActive,
+        search: searchTerm || undefined
+      }
+      const data = await departmentService.getAll(filters)
+      setDepartments(data)
     } catch (error) {
-      console.error('Failed to load departments:', error);
-      alert('Failed to load departments. Please try again.');
+      console.error('Failed to load departments:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
+
+  const loadStats = async () => {
+    try {
+      const statsData = await departmentService.getStats()
+      setStats(statsData)
+    } catch (error) {
+      console.error('Failed to load stats:', error)
+    }
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'budget' ? parseFloat(value) || 0 : value
+    }))
+  }
 
   const resetForm = () => {
     setFormData({
@@ -57,504 +86,565 @@ const DepartmentsPage: React.FC = () => {
       description: '',
       manager_id: '',
       budget: 0,
-      budget_period: 'yearly',
-    });
-  };
+      budget_period: 'yearly'
+    })
+  }
 
-  const handleCreateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!canCreate) {
-      alert('You do not have permission to create departments.');
-      return;
-    }
-
+  const handleCreate = async () => {
     try {
-      await departmentService.create(formData);
-      setShowCreateForm(false);
-      resetForm();
-      loadDepartments();
-      alert('Department created successfully!');
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Failed to create department';
-      alert(errorMessage);
+      await departmentService.create(formData)
+      setShowCreateModal(false)
+      resetForm()
+      loadDepartments()
+      loadStats()
+      alert('Department created successfully!')
+    } catch (error) {
+      console.error('Failed to create department:', error)
+      alert('Failed to create department. Please try again.')
     }
-  };
+  }
 
-  const handleEditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingDepartment) return;
-
-    if (!canEditDepartment(editingDepartment)) {
-      alert('You do not have permission to edit this department.');
-      return;
-    }
-
-    try {
-      const updateData: UpdateDepartmentInput = {};
-      
-      if (formData.name && formData.name !== editingDepartment.name) {
-        updateData.name = formData.name;
-      }
-      
-      if (formData.code && formData.code !== editingDepartment.code) {
-        updateData.code = formData.code;
-      }
-      
-      if (formData.description !== editingDepartment.description) {
-        updateData.description = formData.description || undefined;
-      }
-      
-      if (formData.manager_id && formData.manager_id !== editingDepartment.manager_id) {
-        updateData.manager_id = formData.manager_id;
-      }
-      
-      if (formData.budget !== editingDepartment.budget) {
-        updateData.budget = formData.budget;
-      }
-      
-      if (formData.budget_period !== editingDepartment.budget_period) {
-        updateData.budget_period = formData.budget_period;
-      }
-
-      if (Object.keys(updateData).length === 0) {
-        alert('No changes detected.');
-        return;
-      }
-
-      await departmentService.update(editingDepartment.id, updateData);
-      setShowEditForm(false);
-      setEditingDepartment(null);
-      resetForm();
-      loadDepartments();
-      alert('Department updated successfully!');
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Failed to update department';
-      alert(errorMessage);
-    }
-  };
-
-  const handleEdit = (dept: Department) => {
-    if (!canEditDepartment(dept)) {
-      alert('You do not have permission to edit this department.');
-      return;
-    }
-
-    setEditingDepartment(dept);
+  const handleEdit = (department: Department) => {
+    setEditingDepartment(department)
     setFormData({
-      name: dept.name,
-      code: dept.code,
-      description: dept.description || '',
-      manager_id: dept.manager_id,
-      budget: dept.budget,
-      budget_period: dept.budget_period,
-    });
-    setShowEditForm(true);
-  };
+      name: department.name,
+      code: department.code,
+      description: department.description || '',
+      manager_id: department.manager_id,
+      budget: department.budget,
+      budget_period: department.budget_period
+    })
+    setShowEditModal(true)
+  }
 
-  const handleDelete = async (id: string, deptName: string) => {
-    if (!canDelete) {
-      alert('You do not have permission to delete departments.');
-      return;
+  const handleUpdate = async () => {
+    if (!editingDepartment) return
+
+    try {
+      const updateData: UpdateDepartmentInput = { ...formData }
+      await departmentService.update(editingDepartment.id, updateData)
+      setShowEditModal(false)
+      setEditingDepartment(null)
+      resetForm()
+      loadDepartments()
+      loadStats()
+      alert('Department updated successfully!')
+    } catch (error) {
+      console.error('Failed to update department:', error)
+      alert('Failed to update department. Please try again.')
+    }
+  }
+
+  const handleToggleStatus = async (department: Department) => {
+    try {
+      await departmentService.toggleStatus(department.id)
+      loadDepartments()
+      loadStats()
+      alert(`Department ${department.is_active ? 'deactivated' : 'activated'} successfully!`)
+    } catch (error) {
+      console.error('Failed to toggle department status:', error)
+      alert('Failed to toggle department status. Please try again.')
+    }
+  }
+
+  const handleDelete = async (department: Department) => {
+    if (!confirm(`Are you sure you want to delete "${department.name}"? This action cannot be undone.`)) {
+      return
     }
 
-    if (window.confirm(`Are you sure you want to delete "${deptName}"? This action cannot be undone.`)) {
-      try {
-        await departmentService.delete(id);
-        loadDepartments();
-        alert('Department deleted successfully!');
-      } catch (error: any) {
-        const errorMessage = error.response?.data?.message || 'Failed to delete department';
-        alert(errorMessage);
-      }
+    try {
+      await departmentService.delete(department.id)
+      loadDepartments()
+      loadStats()
+      alert('Department deleted successfully!')
+    } catch (error) {
+      console.error('Failed to delete department:', error)
+      alert('Failed to delete department. Please try again.')
     }
-  };
+  }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'INR'
-    }).format(amount);
-  };
-
-  const getBudgetPercentage = (used: number, total: number) => {
-    return total > 0 ? Math.round((used / total) * 100) : 0;
-  };
-
-  const getBudgetColor = (percentage: number) => {
-    if (percentage > 90) return 'text-red-600 bg-red-100';
-    if (percentage > 75) return 'text-yellow-600 bg-yellow-100';
-    return 'text-green-600 bg-green-100';
-  };
-
-  if (!canView) {
-    return (
-      <div className="p-6">
-        <div className="flex items-center justify-center min-h-64">
-          <div className="text-center">
-            <Lock className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">Access Denied</h3>
-            <p className="mt-2 text-gray-500">You do not have permission to view departments.</p>
-          </div>
-        </div>
-      </div>
-    );
+      currency: 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount)
   }
 
-  if (loading) {
-    return (
-      <div className="p-6">
-        <div className="flex items-center justify-center min-h-64">
-          <div className="text-gray-500">Loading departments...</div>
-        </div>
-      </div>
-    );
+  const getBudgetUsagePercentage = (used: number, total: number) => {
+    return total > 0 ? Math.round((used / total) * 100) : 0
   }
-
-  const DepartmentForm = ({ 
-    isEdit = false, 
-    onSubmit, 
-    onCancel 
-  }: { 
-    isEdit?: boolean; 
-    onSubmit: (e: React.FormEvent) => void; 
-    onCancel: () => void; 
-  }) => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-96 max-h-screen overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4">
-          {isEdit ? 'Edit Department' : 'Create New Department'}
-        </h2>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Department Name *
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="e.g., Information Technology"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Department Code *
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.code}
-              onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="e.g., IT"
-              disabled={isEdit}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              rows={3}
-              placeholder="Department description..."
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Manager ID *
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.manager_id}
-              onChange={(e) => setFormData({ ...formData, manager_id: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Manager User ID"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Budget *
-            </label>
-            <input
-              type="number"
-              required
-              min="0"
-              step="0.01"
-              value={formData.budget}
-              onChange={(e) => setFormData({ ...formData, budget: parseFloat(e.target.value) || 0 })}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="0.00"
-              disabled={!isAdmin}
-            />
-            {!isAdmin && (
-              <p className="text-xs text-gray-500 mt-1">Only administrators can modify budgets</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Budget Period *
-            </label>
-            <select
-              required
-              value={formData.budget_period}
-              onChange={(e) => setFormData({ ...formData, budget_period: e.target.value as any })}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              disabled={!isAdmin}
-            >
-              <option value="monthly">Monthly</option>
-              <option value="quarterly">Quarterly</option>
-              <option value="yearly">Yearly</option>
-            </select>
-          </div>
-
-          <div className="flex space-x-3 pt-4">
-            <button
-              type="submit"
-              className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
-            >
-              {isEdit ? 'Update Department' : 'Create Department'}
-            </button>
-            <button
-              type="button"
-              onClick={onCancel}
-              className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-              <Building2 className="mr-2 h-6 w-6" />
-              Departments
-            </h1>
-            <p className="text-gray-600">
-              Manage organizational departments and budgets
-              {!isAdmin && (
-                <span className="text-sm text-gray-500 block">
-                  ({user?.role === 'manager' ? 'Manager view - Edit your department only' : 'Read-only access'})
-                </span>
-              )}
-            </p>
-          </div>
-          {canCreate && (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Departments</h1>
+              <p className="text-gray-600">Manage your organization departments</p>
+            </div>
             <button
-              onClick={() => setShowCreateForm(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
+              onClick={() => setShowCreateModal(true)}
+              className="btn btn-primary flex items-center"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Add Department
+              New Department
             </button>
-          )}
+          </div>
         </div>
       </div>
 
-      {!isAdmin && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="flex items-center">
-            <Eye className="h-4 w-4 text-blue-600 mr-2" />
-            <span className="text-sm text-blue-700">
-              {isManager && 'You can edit your own department. '}
-              Contact an administrator for department changes.
-            </span>
+      <div className="p-6">
+        {/* Stats Cards */}
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="card hover:shadow-xl transition-all duration-300">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Departments</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-blue-100">
+                  <Building2 className="w-6 h-6 text-blue-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="card hover:shadow-xl transition-all duration-300">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Active Departments</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{stats.active}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-green-100">
+                  <Users className="w-6 h-6 text-green-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="card hover:shadow-xl transition-all duration-300">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Budget</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(stats.totalBudget)}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-purple-100">
+                  <DollarSign className="w-6 h-6 text-purple-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="card hover:shadow-xl transition-all duration-300">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Budget Used</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(stats.totalBudgetUsed)}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-orange-100">
+                  <TrendingUp className="w-6 h-6 text-orange-600" />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Filters */}
+        <div className="card mb-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search departments..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <select
+                value={filterActive === undefined ? '' : filterActive.toString()}
+                onChange={(e) => setFilterActive(e.target.value === '' ? undefined : e.target.value === 'true')}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              >
+                <option value="">All Status</option>
+                <option value="true">Active Only</option>
+                <option value="false">Inactive Only</option>
+              </select>
+            </div>
           </div>
         </div>
-      )}
 
-      {showCreateForm && (
-        <DepartmentForm
-          onSubmit={handleCreateSubmit}
-          onCancel={() => {
-            setShowCreateForm(false);
-            resetForm();
-          }}
-        />
-      )}
-
-      {showEditForm && (
-        <DepartmentForm
-          isEdit={true}
-          onSubmit={handleEditSubmit}
-          onCancel={() => {
-            setShowEditForm(false);
-            setEditingDepartment(null);
-            resetForm();
-          }}
-        />
-      )}
-
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Department
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Code
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Budget
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Used
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Remaining
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {departments.length === 0 ? (
+        {/* Departments Table */}
+        <div className="card">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
                 <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
-                    No departments found. 
-                    {canCreate && ' Create your first department to get started.'}
-                  </td>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Department
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Code
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Manager
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Budget
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Usage
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
-              ) : (
-                departments.map((dept) => {
-                  const budgetPercentage = getBudgetPercentage(dept.budget_used, dept.budget);
-                  const remaining = dept.budget - dept.budget_used;
-                  const canEditThis = canEditDepartment(dept);
-                  
-                  return (
-                    <tr key={dept.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{dept.name}</div>
-                          {dept.description && (
-                            <div className="text-sm text-gray-500">{dept.description}</div>
-                          )}
-                          {dept.manager_id === user?.id && (
-                            <div className="text-xs text-blue-600 font-medium">Your Department</div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                          {dept.code}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatCurrency(dept.budget)}
-                        <div className="text-xs text-gray-500 capitalize">{dept.budget_period}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatCurrency(dept.budget_used)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatCurrency(remaining)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getBudgetColor(budgetPercentage)}`}>
-                          {budgetPercentage}% Used
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          {canEditThis && (
-                            <button 
-                              onClick={() => handleEdit(dept)}
-                              className="text-blue-600 hover:text-blue-900"
-                              title="Edit department"
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {loading ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                      Loading departments...
+                    </td>
+                  </tr>
+                ) : departments.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                      No departments found
+                    </td>
+                  </tr>
+                ) : (
+                  departments.map((department) => {
+                    const usagePercentage = getBudgetUsagePercentage(department.budget_used, department.budget)
+                    return (
+                      <tr key={department.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{department.name}</div>
+                            {department.description && (
+                              <div className="text-sm text-gray-500">{department.description}</div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {department.code}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {department.manager_id}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{formatCurrency(department.budget)}</div>
+                          <div className="text-sm text-gray-500">{department.budget_period}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-gray-900">
+                                  {formatCurrency(department.budget_used)}
+                                </span>
+                                <span className="text-sm text-gray-500">{usagePercentage}%</span>
+                              </div>
+                              <div className="mt-1 w-full bg-gray-200 rounded-full h-2">
+                                <div
+                                  className={`h-2 rounded-full ${
+                                    usagePercentage > 90 ? 'bg-red-500' :
+                                    usagePercentage > 75 ? 'bg-yellow-500' : 'bg-green-500'
+                                  }`}
+                                  style={{ width: `${Math.min(usagePercentage, 100)}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            department.is_active
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {department.is_active ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => handleEdit(department)}
+                              className="text-indigo-600 hover:text-indigo-900"
+                              title="Edit"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
-                          )}
-                          {canDelete && (
-                            <button 
-                              onClick={() => handleDelete(dept.id, dept.name)}
+                            <button
+                              onClick={() => handleToggleStatus(department)}
+                              className={`${department.is_active ? 'text-yellow-600 hover:text-yellow-900' : 'text-green-600 hover:text-green-900'}`}
+                              title={department.is_active ? 'Deactivate' : 'Activate'}
+                            >
+                              {department.is_active ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
+                            </button>
+                            <button
+                              onClick={() => handleDelete(department)}
                               className="text-red-600 hover:text-red-900"
-                              title="Delete department"
+                              title="Delete"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
-                          )}
-                          {!canEditThis && !canDelete && (
-                            <span className="text-gray-400" title="View only">
-                              <Eye className="w-4 h-4" />
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex items-center">
-            <Building2 className="h-8 w-8 text-blue-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Departments</p>
-              <p className="text-2xl font-bold text-gray-900">{departments.length}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex items-center">
-            <DollarSign className="h-8 w-8 text-green-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Budget</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {formatCurrency(departments.reduce((sum, dept) => sum + dept.budget, 0))}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex items-center">
-            <Users className="h-8 w-8 text-purple-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">
-                {isManager ? 'Your Departments' : 'Active Departments'}
-              </p>
-              <p className="text-2xl font-bold text-gray-900">
-                {isManager 
-                  ? departments.filter(dept => dept.manager_id === user?.id).length
-                  : departments.filter(dept => dept.is_active).length
-                }
-              </p>
-            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
+
+      {/* Create Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Create New Department</h3>
+              <button
+                onClick={() => {
+                  setShowCreateModal(false)
+                  resetForm()
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Department name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Code</label>
+                <input
+                  type="text"
+                  name="code"
+                  value={formData.code}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Department code"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Department description"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Manager ID</label>
+                <input
+                  type="text"
+                  name="manager_id"
+                  value={formData.manager_id}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Manager ID"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Budget</label>
+                <input
+                  type="number"
+                  name="budget"
+                  value={formData.budget}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Budget amount"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Budget Period</label>
+                <select
+                  name="budget_period"
+                  value={formData.budget_period}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="monthly">Monthly</option>
+                  <option value="quarterly">Quarterly</option>
+                  <option value="yearly">Yearly</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowCreateModal(false)
+                  resetForm()
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreate}
+                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-md flex items-center"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Create
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && editingDepartment && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Edit Department</h3>
+              <button
+                onClick={() => {
+                  setShowEditModal(false)
+                  setEditingDepartment(null)
+                  resetForm()
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Department name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Code</label>
+                <input
+                  type="text"
+                  name="code"
+                  value={formData.code}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Department code"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Department description"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Manager ID</label>
+                <input
+                  type="text"
+                  name="manager_id"
+                  value={formData.manager_id}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Manager ID"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Budget</label>
+                <input
+                  type="number"
+                  name="budget"
+                  value={formData.budget}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="Budget amount"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Budget Period</label>
+                <select
+                  name="budget_period"
+                  value={formData.budget_period}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="monthly">Monthly</option>
+                  <option value="quarterly">Quarterly</option>
+                  <option value="yearly">Yearly</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowEditModal(false)
+                  setEditingDepartment(null)
+                  resetForm()
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdate}
+                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-md flex items-center"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Update
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-  );
-};
+  )
+}
 
-export default DepartmentsPage;
+export default DepartmentsPage

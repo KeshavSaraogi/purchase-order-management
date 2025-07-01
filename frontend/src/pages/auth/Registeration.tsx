@@ -1,28 +1,55 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom';
+// frontend/src/pages/auth/Registration.tsx
+
+import React, { useState, useEffect } from 'react'
 import { Eye, EyeOff, Lock, Mail, User, Building, Phone, ArrowRight, Check } from 'lucide-react'
-import { useAuthStore } from '@store/authStore';
-import { api } from '@services/api'
+import { departmentService, Department } from '@services/departmentService'
 
 const RegistrationPage = () => {
-  const navigate = useNavigate();
-  const login = useAuthStore((state) => state.login);
-  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
+  const [departments, setDepartments] = useState<Department[]>([])
+  const [loadingDepartments, setLoadingDepartments] = useState(true)
   
   const [formData, setFormData] = useState({
-  firstName: '',
-  lastName: '',
-  email: '',
-  phone: '',
-  department: '',
-  role: '',
-  password: '',
-  confirmPassword: '',
-  agreeToTerms: false
-})
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    
+    department: '',
+    employeeId: '',
+    role: '',
+    
+    password: '',
+    confirmPassword: '',
+    agreeToTerms: false
+  })
+
+  // Fetch departments on component mount
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        setLoadingDepartments(true)
+        const activeDepartments = await departmentService.getAll({ active: true })
+        setDepartments(activeDepartments)
+        console.log(`✅ Loaded ${activeDepartments.length} active departments`)
+      } catch (error) {
+        console.error('❌ Failed to load departments:', error)
+        // Fallback to hardcoded list if API fails
+        setDepartments([
+          { id: '1', name: 'IT - Information Technology', code: 'IT' },
+          { id: '2', name: 'Finance - Accounts & Finance', code: 'Finance' },
+          { id: '3', name: 'Operations - General Operations', code: 'Operations' },
+          { id: '4', name: 'Admin - Administration', code: 'Admin' },
+        ] as Department[])
+      } finally {
+        setLoadingDepartments(false)
+      }
+    }
+
+    fetchDepartments()
+  }, [])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
@@ -36,56 +63,9 @@ const RegistrationPage = () => {
   const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 3))
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1))
 
-  const handleSubmit = async () => {
-    setLoading(true);
-    try{
-        if (formData.password !== formData.confirmPassword) {
-        alert("Passwords do not match");
-        return;
-      }
-
-      if (!formData.agreeToTerms) {
-        alert("Please agree to terms and conditions");
-        return;
-      }
-
-      try {
-        const payload = {
-        name: `${formData.firstName} ${formData.lastName}`,
-        email: formData.email,
-        phone: formData.phone,
-        department: formData.department,
-        role: formData.role || 'purchaser',
-        password: formData.password
-      };
-
-        const response = await api.post('/api/register', payload);
-        const user = response.data.user;
-        login(user, '');
-        navigate('/dashboard');
-
-        console.log("✅ Registration successful:", response.data);
-        alert("Registration successful!");
-      } catch (err: any) {
-        console.error("Registration failed:", err.response?.data || err.message);
-        alert(err.response?.data?.message || "Something went wrong");
-      }
-    }
-    finally {
-      setLoading(false);
-    }
+  const handleSubmit = () => {
+    console.log('Registration data:', formData)
   }
-
-  const departments = [
-    'IT - Information Technology',
-    'DRI - Direct Responsibility',
-    'SMS - Sales & Marketing Services',
-    'CPP - Corporate Planning & Procurement',
-    'RMHS - Resource Management & HR',
-    'Finance - Accounts & Finance',
-    'Operations - General Operations',
-    'Admin - Administration'
-  ]
 
   const roles = [
     'Purchaser',
@@ -128,291 +108,293 @@ const RegistrationPage = () => {
                   {step < 3 && (
                     <div className={`w-12 h-0.5 ${
                       currentStep > step ? 'bg-primary-500' : 'bg-gray-300'
-                    }`} />
+                    }`}></div>
                   )}
                 </React.Fragment>
               ))}
             </div>
           </div>
 
-          <div className="space-y-6">
-            {currentStep === 1 && (
-              <div className="space-y-6">
-                <div className="text-center mb-6">
-                  <h3 className="text-lg font-semibold text-gray-800">Personal Information</h3>
-                  <p className="text-sm text-gray-600">Tell us about yourself</p>
-                </div>
+          {/* Step 1: Personal Information */}
+          {currentStep === 1 && (
+            <div className="space-y-6">
+              <div className="text-center mb-6">
+                <h3 className="text-lg font-semibold text-gray-800">Personal Information</h3>
+                <p className="text-sm text-gray-600">Tell us about yourself</p>
+              </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      First Name
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <User className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <input
-                        name="firstName"
-                        type="text"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        className="block w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-gray-50 focus:bg-white"
-                        placeholder="Enter first name"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Last Name
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <User className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <input
-                        name="lastName"
-                        type="text"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        className="block w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-gray-50 focus:bg-white"
-                        placeholder="Enter last name"
-                      />
-                    </div>
-                  </div>
-                </div>
-
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address
+                    First Name
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-5 w-5 text-gray-400" />
+                      <User className="h-5 w-5 text-gray-400" />
                     </div>
                     <input
-                      name="email"
-                      type="email"
-                      value={formData.email}
+                      name="firstName"
+                      type="text"
+                      value={formData.firstName}
                       onChange={handleInputChange}
                       className="block w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-gray-50 focus:bg-white"
-                      placeholder="Enter your email"
+                      placeholder="Enter first name"
                     />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone Number
+                    Last Name
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Phone className="h-5 w-5 text-gray-400" />
+                      <User className="h-5 w-5 text-gray-400" />
                     </div>
                     <input
-                      name="phone"
-                      type="tel"
-                      value={formData.phone}
+                      name="lastName"
+                      type="text"
+                      value={formData.lastName}
                       onChange={handleInputChange}
                       className="block w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-gray-50 focus:bg-white"
-                      placeholder="Enter phone number"
+                      placeholder="Enter last name"
                     />
                   </div>
                 </div>
               </div>
-            )}
 
-            {currentStep === 2 && (
-              <div className="space-y-6">
-                <div className="text-center mb-6">
-                  <h3 className="text-lg font-semibold text-gray-800">Company Information</h3>
-                  <p className="text-sm text-gray-600">Your role and department</p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Department
-                  </label>
-                  <select
-                    name="department"
-                    value={formData.department}
-                    onChange={handleInputChange}
-                    className="block w-full px-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-gray-50 focus:bg-white"
-                  >
-                    <option value="">Select your department</option>
-                    {departments.map((dept) => (
-                      <option key={dept} value={dept}>{dept}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Role
-                  </label>
-                  <select
-                    name="role"
-                    value={formData.role}
-                    onChange={handleInputChange}
-                    className="block w-full px-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-gray-50 focus:bg-white"
-                  >
-                    <option value="">Select your role</option>
-                    {roles.map((role) => (
-                      <option key={role} value={role}>{role}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            )}
-
-            {currentStep === 3 && (
-              <div className="space-y-6">
-                <div className="text-center mb-6">
-                  <h3 className="text-lg font-semibold text-gray-800">Security Setup</h3>
-                  <p className="text-sm text-gray-600">Create a secure password</p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      name="password"
-                      type={showPassword ? 'text' : 'password'}
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      className="block w-full pl-10 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-gray-50 focus:bg-white"
-                      placeholder="Create a password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                      ) : (
-                        <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                      )}
-                    </button>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-gray-400" />
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Confirm Password
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      name="confirmPassword"
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
-                      className="block w-full pl-10 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-gray-50 focus:bg-white"
-                      placeholder="Confirm your password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                      ) : (
-                        <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Password Requirements:</h4>
-                  <ul className="text-xs text-gray-600 space-y-1">
-                    <li className="flex items-center">
-                      <div className={`w-2 h-2 rounded-full mr-2 ${formData.password.length >= 8 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                      At least 8 characters long
-                    </li>
-                    <li className="flex items-center">
-                      <div className={`w-2 h-2 rounded-full mr-2 ${/[A-Z]/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                      One uppercase letter
-                    </li>
-                    <li className="flex items-center">
-                      <div className={`w-2 h-2 rounded-full mr-2 ${/[0-9]/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                      One number
-                    </li>
-                    <li className="flex items-center">
-                      <div className={`w-2 h-2 rounded-full mr-2 ${/[!@#$%^&*]/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                      One special character
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="flex items-start">
                   <input
-                    id="agreeToTerms"
-                    name="agreeToTerms"
-                    type="checkbox"
-                    checked={formData.agreeToTerms}
+                    name="email"
+                    type="email"
+                    value={formData.email}
                     onChange={handleInputChange}
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded mt-1"
+                    className="block w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                    placeholder="Enter email address"
                   />
-                  <label htmlFor="agreeToTerms" className="ml-3 block text-sm text-gray-700">
-                    I agree to the{' '}
-                    <button type="button" className="text-primary-600 hover:text-primary-700 font-medium">
-                      Terms and Conditions
-                    </button>{' '}
-                    and{' '}
-                    <button type="button" className="text-primary-600 hover:text-primary-700 font-medium">
-                      Privacy Policy
-                    </button>
-                  </label>
                 </div>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Phone Number
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Phone className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    name="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className="block w-full pl-10 pr-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                    placeholder="Enter phone number"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Company Information - UPDATED WITH API DEPARTMENTS */}
+          {currentStep === 2 && (
+            <div className="space-y-6">
+              <div className="text-center mb-6">
+                <h3 className="text-lg font-semibold text-gray-800">Company Information</h3>
+                <p className="text-sm text-gray-600">Your role and department</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Department
+                  {loadingDepartments && (
+                    <span className="text-xs text-blue-500 ml-2">Loading departments...</span>
+                  )}
+                </label>
+                <select
+                  name="department"
+                  value={formData.department}
+                  onChange={handleInputChange}
+                  disabled={loadingDepartments}
+                  className="block w-full px-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-gray-50 focus:bg-white disabled:opacity-50"
+                >
+                  <option value="">
+                    {loadingDepartments ? 'Loading departments...' : 'Select your department'}
+                  </option>
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.code}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+                {departments.length === 0 && !loadingDepartments && (
+                  <p className="text-xs text-red-500 mt-1">
+                    Unable to load departments. Please try again later.
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Employee ID
+                </label>
+                <input
+                  name="employeeId"
+                  type="text"
+                  value={formData.employeeId}
+                  onChange={handleInputChange}
+                  className="block w-full px-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                  placeholder="Enter your employee ID"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Role
+                </label>
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleInputChange}
+                  className="block w-full px-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                >
+                  <option value="">Select your role</option>
+                  {roles.map((role) => (
+                    <option key={role} value={role}>{role}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Security Setup - (rest of the form stays the same) */}
+          {currentStep === 3 && (
+            <div className="space-y-6">
+              <div className="text-center mb-6">
+                <h3 className="text-lg font-semibold text-gray-800">Security Setup</h3>
+                <p className="text-sm text-gray-600">Create a secure password</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className="block w-full pl-10 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                    placeholder="Create a password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    name="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    className="block w-full pl-10 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                    placeholder="Confirm your password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  id="agreeToTerms"
+                  name="agreeToTerms"
+                  type="checkbox"
+                  checked={formData.agreeToTerms}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                />
+                <label htmlFor="agreeToTerms" className="ml-2 block text-sm text-gray-700">
+                  I agree to the{' '}
+                  <a href="#" className="text-primary-600 hover:text-primary-700 font-medium">
+                    Terms of Service
+                  </a>{' '}
+                  and{' '}
+                  <a href="#" className="text-primary-600 hover:text-primary-700 font-medium">
+                    Privacy Policy
+                  </a>
+                </label>
+              </div>
+            </div>
+          )}
+
+          {/* Navigation buttons */}
+          <div className="flex justify-between mt-8">
+            {currentStep > 1 ? (
+              <button
+                onClick={prevStep}
+                className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all duration-200"
+              >
+                Previous
+              </button>
+            ) : (
+              <div></div>
             )}
 
-            <div className="flex justify-between pt-6">
-              {currentStep > 1 ? (
-                <button
-                  onClick={prevStep}
-                  className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all duration-200"
-                >
-                  Previous
-                </button>
-              ) : (
-                <div></div>
-              )}
-
-              {currentStep < 3 ? (
-                <button
-                  onClick={nextStep}
-                  className="flex items-center px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg group"
-                >
-                  Next
-                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </button>
-              ) : (
-                <button
-                onClick={handleSubmit}
-                disabled={loading}
-                className={`flex items-center px-6 py-3 rounded-xl font-medium transition-all duration-200 transform group
-                  ${loading 
-                    ? 'bg-gray-400 text-white cursor-not-allowed' 
-                    : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 hover:-translate-y-0.5 hover:shadow-lg'}
-                `}
+            {currentStep < 3 ? (
+              <button
+                onClick={nextStep}
+                className="flex items-center px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg group"
               >
-                {loading ? 'Creating Account...' : 'Create Account'}
+                Next
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                className="flex items-center px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-medium rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg group"
+              >
+                Create Account
                 <Check className="ml-2 h-4 w-4 group-hover:scale-110 transition-transform" />
               </button>
-              )}
-            </div>
+            )}
           </div>
 
           <div className="mt-8">
@@ -427,7 +409,7 @@ const RegistrationPage = () => {
           </div>
 
           <div className="mt-6 text-center">
-            <button className="text-primary-600 hover:text-primary-700 font-medium text-sm" onClick={() => navigate('/login')} >
+            <button className="text-primary-600 hover:text-primary-700 font-medium text-sm">
               Sign in to your account →
             </button>
           </div>
