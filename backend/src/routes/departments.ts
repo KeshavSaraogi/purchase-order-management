@@ -14,6 +14,7 @@ import {
 //  UpdateDepartmentInput
 } from '../model/Department'
 import { findUserById } from '../model/user'
+import { Department } from '../model/Department';
 
 const router = express.Router();
 
