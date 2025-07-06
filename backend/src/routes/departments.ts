@@ -12,6 +12,7 @@ import {
 } from '../model/Department'
 import { findUserById } from '../model/user'
 import { CreateDepartmentInput, UpdateDepartmentInput } from '../model/Department'
+import supabase from '../utils/supabaseClient'
 
 const router = express.Router()
 
@@ -131,6 +132,34 @@ router.get('/:id/budget', authenticateToken, async (req, res) => {
     res.json({ success: true, data: status })
   } catch {
     res.status(500).json({ success: false, message: 'Failed to fetch budget status' })
+  }
+})
+
+router.get('/stats', authenticateToken, requireRole(['admin']), async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('departments')
+      .select('budget, budget_used, is_active')
+
+    if (error || !data) throw error || new Error('No data returned')
+
+    const total = data.length
+    const active = data.filter(d => d.is_active).length
+    const totalBudget = data.reduce((sum, d) => sum + (d.budget || 0), 0)
+    const totalBudgetUsed = data.reduce((sum, d) => sum + (d.budget_used || 0), 0)
+
+    res.json({
+      success: true,
+      data: {
+        total,
+        active,
+        totalBudget,
+        totalBudgetUsed
+      }
+    })
+  } catch (err: any) {
+    console.error('❌ Failed to fetch department stats:', err.message)
+    res.status(500).json({ success: false, message: 'Failed to fetch stats' })
   }
 })
 
