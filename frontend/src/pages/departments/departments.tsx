@@ -13,12 +13,12 @@ import {
   X,
   Save
 } from 'lucide-react'
-import 
-  departmentService, 
-  Department, 
-  CreateDepartmentInput, 
-  UpdateDepartmentInput, 
-  DepartmentStats 
+import departmentService from '@services/departmentService'
+import type {
+  Department,
+  CreateDepartmentInput,
+  UpdateDepartmentInput,
+  DepartmentStats
 } from '@services/departmentService'
 
 const DepartmentsPage = () => {
@@ -49,10 +49,11 @@ const DepartmentsPage = () => {
   const loadDepartments = async () => {
     try {
       setLoading(true)
-      const filters = {
-        active: filterActive,
-        search: searchTerm || undefined
-      }
+
+      const filters: { active?: boolean; search?: string } = {}
+      if (filterActive !== undefined) filters.active = filterActive
+      if (searchTerm.trim()) filters.search = searchTerm.trim()
+
       const data = await departmentService.getAll(filters)
       setDepartments(data)
     } catch (error) {
@@ -478,7 +479,7 @@ const DepartmentsPage = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                   placeholder="Leave blank if not assigned"
                 />
-              </div>
+                </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Budget</label>
