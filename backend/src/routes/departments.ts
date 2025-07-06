@@ -81,8 +81,8 @@ router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Res
 router.post('/', authenticateToken, requireRole(['admin']), async (req: AuthenticatedRequest, res: Response) => {
   const input: CreateDepartmentInput = req.body
 
-  if (!input.name || !input.code || !input.manager_id) {
-    return res.status(400).json({ success: false, message: 'Name, code, and manager_id are required' })
+  if (!input.name || !input.code) {
+    return res.status(400).json({ success: false, message: 'Name and code are required' })
   }
 
   try {
