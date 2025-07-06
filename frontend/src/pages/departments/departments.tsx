@@ -467,14 +467,16 @@ const DepartmentsPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Manager ID</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Manager ID <span className="text-gray-400">(optional)</span>
+                </label>
                 <input
                   type="text"
                   name="manager_id"
                   value={formData.manager_id}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder="Manager ID"
+                  placeholder="Leave blank if not assigned"
                 />
               </div>
 
