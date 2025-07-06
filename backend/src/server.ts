@@ -10,32 +10,28 @@ dotenv.config();
 
 const app = express();
 
-const allowedOrigins: (string | RegExp)[] = [
+const allowedOrigins = [
   'https://purchase-order-management.vercel.app',
-  /^https:\/\/purchase-order-management.*\.vercel\.app$/
-];
+  /^https:\/\/purchase-order-management.*\.vercel\.app$/,
+  'http://localhost:5173'
+]
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
-    if (!origin) {
-      callback(null, true);
-      return;
-    }
+    if (!origin) return callback(null, true)
 
-    const isAllowed = allowedOrigins.some(pattern => {
-      if (typeof pattern === 'string') return pattern === origin;
-      return pattern.test(origin);
-    });
+    const isAllowed = allowedOrigins.some(pattern =>
+      typeof pattern === 'string' ? pattern === origin : pattern.test(origin)
+    )
 
-    if (isAllowed) {
-      callback(null, true);
-    } else {
-      console.log(`❌ CORS blocked origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
+    if (isAllowed) return callback(null, true)
+    console.log(`❌ CORS blocked origin: ${origin}`)
+    callback(new Error('Not allowed by CORS'))
   },
   credentials: true,
-};
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
