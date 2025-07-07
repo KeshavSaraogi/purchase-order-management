@@ -1,8 +1,7 @@
-// frontend/src/pages/auth/Registration.tsx
-
 import React, { useState, useEffect } from 'react'
 import { Eye, EyeOff, Lock, Mail, User, Building, Phone, ArrowRight, Check } from 'lucide-react'
-import { departmentService, Department } from '@services/departmentService'
+import departmentService from '@services/departmentService'
+import type { Department } from '@services/departmentService'
 
 const RegistrationPage = () => {
   const [showPassword, setShowPassword] = useState(false)
@@ -36,7 +35,6 @@ const RegistrationPage = () => {
         console.log(`✅ Loaded ${activeDepartments.length} active departments`)
       } catch (error) {
         console.error('❌ Failed to load departments:', error)
-        // Fallback to hardcoded list if API fails
         setDepartments([
           { id: '1', name: 'IT - Information Technology', code: 'IT' },
           { id: '2', name: 'Finance - Accounts & Finance', code: 'Finance' },
@@ -115,7 +113,6 @@ const RegistrationPage = () => {
             </div>
           </div>
 
-          {/* Step 1: Personal Information */}
           {currentStep === 1 && (
             <div className="space-y-6">
               <div className="text-center mb-6">
@@ -203,7 +200,6 @@ const RegistrationPage = () => {
             </div>
           )}
 
-          {/* Step 2: Company Information - UPDATED WITH API DEPARTMENTS */}
           {currentStep === 2 && (
             <div className="space-y-6">
               <div className="text-center mb-6">
@@ -274,7 +270,6 @@ const RegistrationPage = () => {
             </div>
           )}
 
-          {/* Step 3: Security Setup - (rest of the form stays the same) */}
           {currentStep === 3 && (
             <div className="space-y-6">
               <div className="text-center mb-6">
@@ -365,7 +360,6 @@ const RegistrationPage = () => {
             </div>
           )}
 
-          {/* Navigation buttons */}
           <div className="flex justify-between mt-8">
             {currentStep > 1 ? (
               <button
@@ -422,7 +416,6 @@ const RegistrationPage = () => {
         </div>
       </div>
 
-      {/* Floating Elements */}
       <div className="absolute top-32 left-10 w-24 h-24 bg-white/10 rounded-full blur-xl animate-pulse-slow"></div>
       <div className="absolute bottom-20 right-20 w-40 h-40 bg-white/5 rounded-full blur-xl animate-bounce-subtle"></div>
       <div className="absolute top-1/3 right-10 w-20 h-20 bg-white/10 rounded-full blur-xl animate-pulse-slow" style={{ animationDelay: '2000ms' }}></div>
