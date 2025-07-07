@@ -115,13 +115,19 @@ router.patch('/:id/status', authenticateToken, requireRole(['admin']), async (re
   }
 })
 
-router.delete('/:id', authenticateToken, requireRole(['admin']), async (req, res) => {
-  try {
-    await deleteDepartment(req.params.id)
-    res.json({ success: true, message: 'Department deleted (soft)' })
-  } catch {
-    res.status(500).json({ success: false, message: 'Failed to delete department' })
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params
+  console.log('[DELETE] Department ID:', id)
+  const { error } = await supabase
+    .from('departments')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    return res.status(500).json({ message: 'Delete failed', error })
   }
+
+  return res.status(200).json({ message: 'Deleted successfully' })
 })
 
 router.get('/:id/budget', authenticateToken, async (req, res) => {
