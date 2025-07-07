@@ -36,7 +36,6 @@ const DepartmentsPage = () => {
     name: '',
     code: '',
     description: '',
-    manager_id: '',
     budget: 0,
     budget_period: 'yearly'
   })
@@ -85,7 +84,6 @@ const DepartmentsPage = () => {
       name: '',
       code: '',
       description: '',
-      manager_id: '',
       budget: 0,
       budget_period: 'yearly'
     })
@@ -111,7 +109,6 @@ const DepartmentsPage = () => {
       name: department.name,
       code: department.code,
       description: department.description || '',
-      manager_id: department.manager_id,
       budget: department.budget,
       budget_period: department.budget_period
     })
@@ -341,9 +338,6 @@ const DepartmentsPage = () => {
                             {department.code}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {department.manager_id}
-                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">{formatCurrency(department.budget)}</div>
                           <div className="text-sm text-gray-500">{department.budget_period}</div>
@@ -468,21 +462,6 @@ const DepartmentsPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Manager ID <span className="text-gray-400">(optional)</span>
-                </label>
-                <input
-                  type="text"
-                  name="manager_id"
-                  value={formData.manager_id || ''}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder="Leave blank if not assigned"
-                  required={false}
-                />
-              </div>
-
-              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Budget</label>
                 <input
                   type="number"
@@ -583,18 +562,6 @@ const DepartmentsPage = () => {
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                   placeholder="Department description"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Manager ID</label>
-                <input
-                  type="text"
-                  name="manager_id"
-                  value={formData.manager_id}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  placeholder="Manager ID"
                 />
               </div>
 

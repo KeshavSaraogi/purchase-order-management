@@ -14,7 +14,6 @@ export interface Department {
   name: string
   code: string
   description: string | null
-  manager_id: string
   budget: number
   budget_used: number
   budget_period: 'monthly' | 'quarterly' | 'yearly'
@@ -27,7 +26,6 @@ export interface CreateDepartmentInput {
   name: string
   code: string
   description?: string
-  manager_id: string
   budget: number
   budget_period: 'monthly' | 'quarterly' | 'yearly'
 }

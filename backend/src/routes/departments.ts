@@ -78,22 +78,43 @@ router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Res
   }
 })
 
-router.post('/', authenticateToken, requireRole(['admin']), async (req: AuthenticatedRequest, res: Response) => {
-  const input: CreateDepartmentInput = req.body
+router.post('/', async (req, res) => {
+  const {
+    name,
+    code,
+    description,
+    budget,
+    budget_period
+  } = req.body
 
-  if (!input.name || !input.code) {
-    return res.status(400).json({ success: false, message: 'Name and code are required' })
+  // Basic validation
+  if (!name || !code || !budget || !budget_period) {
+    return res.status(400).json({ message: 'Missing required fields' })
   }
 
-  try {
-    const existing = await findDepartmentByCode(input.code)
-    if (existing) return res.status(409).json({ success: false, message: 'Department code already exists' })
-
-    const newDept = await createDepartment(input)
-    res.status(201).json({ success: true, message: 'Department created', data: newDept })
-  } catch {
-    res.status(500).json({ success: false, message: 'Failed to create department' })
+  const newDepartment = {
+    name,
+    code,
+    description,
+    budget,
+    budget_used: 0,
+    budget_period,
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   }
+
+  const { data, error } = await supabase
+    .from('departments')
+    .insert([newDepartment])
+    .select()
+
+  if (error) {
+    console.error('[POST /departments] Insert failed:', error)
+    return res.status(500).json({ message: 'Failed to create department', error })
+  }
+
+  return res.status(201).json(data[0])
 })
 
 router.put('/:id', authenticateToken, requireRole(['admin']), async (req: AuthenticatedRequest, res: Response) => {
