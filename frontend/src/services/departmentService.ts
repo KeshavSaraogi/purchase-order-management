@@ -2,13 +2,13 @@ import axios from 'axios'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
 
-const getAuthHeader = () => ({
+const api = axios.create({
+  baseURL: `${API_BASE}/departments`,
   headers: {
-    Authorization: `Bearer ${localStorage.getItem('token')}`
+    Authorization: `Bearer ${localStorage.getItem('token') || ''}`
   }
 })
 
-// Type declarations
 export interface Department {
   id: string
   name: string
@@ -41,42 +41,37 @@ export interface DepartmentStats {
   totalBudgetUsed: number
 }
 
-// API methods
-const getAll = async (filters: { active?: boolean; search?: string }) => {
+const getAll = async (filters?: { active?: boolean; search?: string }): Promise<Department[]> => {
   const params = new URLSearchParams()
-  if (filters.active !== undefined) params.append('active', filters.active.toString())
-  if (filters.search) params.append('search', filters.search)
+  if (filters?.active !== undefined) params.append('active', filters.active.toString())
+  if (filters?.search) params.append('search', filters.search)
 
-  const res = await axios.get(`${API_BASE}/api/departments?${params.toString()}`, getAuthHeader())
+  const res = await api.get(`?${params.toString()}`)
   return res.data.data
 }
 
 const getStats = async (): Promise<DepartmentStats> => {
-  const res = await axios.get(`${API_BASE}/api/departments/stats`, getAuthHeader())
+  const res = await api.get('/stats')
   return res.data.data
 }
 
 const create = async (input: CreateDepartmentInput): Promise<Department> => {
-  const res = await axios.post(`${API_BASE}/api/departments`, input, getAuthHeader())
+  const res = await api.post('', input)
   return res.data.data
 }
 
 const update = async (id: string, input: UpdateDepartmentInput): Promise<Department> => {
-  const res = await axios.put(`${API_BASE}/api/departments/${id}`, input, getAuthHeader())
+  const res = await api.put(`/${id}`, input)
   return res.data.data
 }
 
 const toggleStatus = async (id: string): Promise<Department> => {
-  const res = await axios.patch(
-    `${API_BASE}/api/departments/${id}/status`,
-    {},
-    getAuthHeader()
-  )
+  const res = await api.patch(`/${id}/status`)
   return res.data.data
 }
 
 const remove = async (id: string): Promise<void> => {
-  await axios.delete(`${API_BASE}/api/departments/${id}`, getAuthHeader())
+  await api.delete(`/${id}`)
 }
 
 export default {
