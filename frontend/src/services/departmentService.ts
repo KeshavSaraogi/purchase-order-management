@@ -57,7 +57,7 @@ const getStats = async (): Promise<DepartmentStats> => {
 }
 
 const create = async (input: CreateDepartmentInput): Promise<Department> => {
-  const res = await axios.post(`${API_BASE}/departments`, input, getAuthHeader())
+  const res = await axios.post(`${API_BASE}/api/departments`, input, getAuthHeader())
   return res.data.data
 }
 
