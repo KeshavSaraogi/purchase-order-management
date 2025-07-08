@@ -47,12 +47,12 @@ const getAll = async (filters: { active?: boolean; search?: string }) => {
   if (filters.active !== undefined) params.append('active', filters.active.toString())
   if (filters.search) params.append('search', filters.search)
 
-  const res = await axios.get(`${API_BASE}/departments?${params.toString()}`, getAuthHeader())
+  const res = await axios.get(`${API_BASE}/api/departments?${params.toString()}`, getAuthHeader())
   return res.data.data
 }
 
 const getStats = async (): Promise<DepartmentStats> => {
-  const res = await axios.get(`${API_BASE}/departments/stats`, getAuthHeader())
+  const res = await axios.get(`${API_BASE}/api/departments/stats`, getAuthHeader())
   return res.data.data
 }
 
@@ -62,13 +62,13 @@ const create = async (input: CreateDepartmentInput): Promise<Department> => {
 }
 
 const update = async (id: string, input: UpdateDepartmentInput): Promise<Department> => {
-  const res = await axios.put(`${API_BASE}/departments/${id}`, input, getAuthHeader())
+  const res = await axios.put(`${API_BASE}/api/departments/${id}`, input, getAuthHeader())
   return res.data.data
 }
 
 const toggleStatus = async (id: string): Promise<Department> => {
   const res = await axios.patch(
-    `${API_BASE}/departments/${id}/status`,
+    `${API_BASE}/api/departments/${id}/status`,
     {},
     getAuthHeader()
   )
@@ -76,7 +76,7 @@ const toggleStatus = async (id: string): Promise<Department> => {
 }
 
 const remove = async (id: string): Promise<void> => {
-  await axios.delete(`${API_BASE}/departments/${id}`, getAuthHeader())
+  await axios.delete(`${API_BASE}/api/departments/${id}`, getAuthHeader())
 }
 
 export default {
