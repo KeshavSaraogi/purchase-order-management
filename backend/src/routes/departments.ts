@@ -168,7 +168,10 @@ router.get('/stats', authenticateToken, requireRole(['admin']), async (req, res)
       .from('departments')
       .select('budget, budget_used, is_active')
 
-    if (error || !data) throw error || new Error('No data returned')
+    if (error) throw error
+    if (!data || data.length === 0) {
+      return res.status(404).json({ success: false, message: 'No departments found' })
+    }
 
     const total = data.length
     const active = data.filter(d => d.is_active).length
