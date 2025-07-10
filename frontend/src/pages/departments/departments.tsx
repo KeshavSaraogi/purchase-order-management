@@ -20,6 +20,7 @@ import type {
   UpdateDepartmentInput,
   DepartmentStats
 } from '@services/departmentService'
+import { useAuthStore } from '@store/authStore'
 
 const DepartmentsPage = () => {
   const [departments, setDepartments] = useState<Department[]>([])
@@ -40,7 +41,10 @@ const DepartmentsPage = () => {
     budget_period: 'yearly'
   })
 
+  const { isAuthenticated, token } = useAuthStore()
+
   useEffect(() => {
+    if (!isAuthenticated || !token) return;
     loadDepartments()
     loadStats()
   }, [searchTerm, filterActive])
