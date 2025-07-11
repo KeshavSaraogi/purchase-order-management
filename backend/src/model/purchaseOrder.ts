@@ -1,15 +1,17 @@
-// export interface PurchaseOrder {
-//   id: string
-//   vendorId: string
-//   requestedBy: string
-//   approvedBy?: string
-//   department: string
-//   items: PurchaseOrderItem[]
-//   totalAmount: number
-//   status: 'draft' | 'pending' | 'approved' | 'sent' | 'received' | 'cancelled'
-//   orderDate: Date
-//   expectedDelivery: Date
-//   notes?: string
-//   createdAt: Date
-//   updatedAt: Date
-// }
+export interface PurchaseOrder {
+  id: string
+  vendorId: string
+  requestedBy: string
+  approvedBy?: string
+  department: string
+  description: string
+  notes?: string
+  totalAmount: number
+  currency: string
+  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'sent' | 'received' | 'cancelled'
+  priority: 'low' | 'medium' | 'high' | 'urgent'
+  orderDate: string
+  expectedDelivery: string
+  createdAt: string
+  updatedAt: string
+}
