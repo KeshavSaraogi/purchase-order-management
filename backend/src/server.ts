@@ -3,6 +3,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 import departmentRoutes from './routes/departments';
+import purchaseOrderRoutes from './routes/purchaseOrders';
 
 import express, { Request, Response, NextFunction } from 'express';
 
@@ -54,6 +55,7 @@ app.get('/', (req, res) => {
 
 app.use('/api', authRoutes);
 app.use('/api/departments', departmentRoutes);
+app.use('/api/purchase-orders', purchaseOrderRoutes);
 
 app.use('*', (req, res) => {
   res.status(404).json({ 
