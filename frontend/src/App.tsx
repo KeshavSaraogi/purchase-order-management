@@ -8,6 +8,7 @@ import { DashboardPage } from '@pages/dashboard'
 import DepartmentsPage from '@/pages/departments/departments'
 import Layout from '@components/layout/Layout'
 import { PurchaseOrdersPage } from './pages/purchase-orders'
+import CreatePurchaseOrderPage from './pages/purchase-orders/CreatePurchaseOrder'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -85,6 +86,17 @@ const App: React.FC = () => {
                   </Layout>
                 </ProtectedRoute>
               } 
+            />
+
+            <Route
+              path="/purchase-orders/new"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <CreatePurchaseOrderPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
             />
 
             <Route 

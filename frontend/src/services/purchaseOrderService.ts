@@ -1,4 +1,5 @@
 import { api } from './api'
+import axios from 'axios'
 
 export type PurchaseOrderStatus =
   | 'draft'
@@ -32,5 +33,10 @@ export interface PurchaseOrder {
 
 export const getAllPurchaseOrders = async (): Promise<PurchaseOrder[]> => {
   const response = await api.get('/api/purchase-orders')
+  return response.data
+}
+
+export const createPurchaseOrder = async (data: any) => {
+  const response = await axios.post('/api/purchase-orders', data)
   return response.data
 }
