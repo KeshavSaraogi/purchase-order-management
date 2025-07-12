@@ -6,7 +6,6 @@ import { useAuthStore } from '@store/authStore'
 import { LoginPage, RegistrationPage } from '@pages/auth'
 import { DashboardPage } from '@pages/dashboard'
 import DepartmentsPage from '@/pages/departments/departments'
-
 import Layout from '@components/layout/Layout'
 import { PurchaseOrdersPage } from './pages/purchase-orders'
 

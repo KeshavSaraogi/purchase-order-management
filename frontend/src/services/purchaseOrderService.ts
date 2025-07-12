@@ -27,6 +27,7 @@ export interface PurchaseOrder {
   expectedDelivery: string
   createdAt: string
   updatedAt: string
+  items: number
 }
 
 export const getAllPurchaseOrders = async (): Promise<PurchaseOrder[]> => {

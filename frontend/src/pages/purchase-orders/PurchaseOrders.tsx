@@ -17,23 +17,9 @@ import {
   User,
   Package
 } from 'lucide-react'
-
-interface PurchaseOrder {
-  id: string
-  vendor: string
-  department: string
-  requestedBy: string
-  amount: number
-  currency: string
-  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'sent' | 'received' | 'cancelled'
-  priority: 'low' | 'medium' | 'high' | 'urgent'
-  dateCreated: string
-  dateRequired: string
-  items: number
-  description: string
-  approver?: string
-  notes?: string
-}
+import { useQuery } from '@tanstack/react-query'
+import { getAllPurchaseOrders } from '../../services/purchaseOrderService'
+import  type { PurchaseOrder } from '../../services/purchaseOrderService'
 
 const PurchaseOrdersPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -44,118 +30,23 @@ const PurchaseOrdersPage: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [selectedOrders, setSelectedOrders] = useState<string[]>([])
 
-  const purchaseOrders: PurchaseOrder[] = [
-    {
-      id: 'PO-2025-0143',
-      vendor: 'TechSupply Corp',
-      department: 'IT Department',
-      requestedBy: 'Karan Sharma',
-      amount: 15400,
-      currency: '₹',
-      status: 'pending',
-      priority: 'high',
-      dateCreated: '2025-05-28',
-      dateRequired: '2025-06-15',
-      items: 5,
-      description: 'Server hardware and networking equipment',
-      notes: 'Urgent requirement for data center upgrade'
-    },
-    {
-      id: 'PO-2025-0142',
-      vendor: 'Office Essentials Ltd',
-      department: 'Admin',
-      requestedBy: 'Priya Singh',
-      amount: 8750,
-      currency: '₹',
-      status: 'approved',
-      priority: 'medium',
-      dateCreated: '2025-05-27',
-      dateRequired: '2025-06-10',
-      items: 12,
-      description: 'Office supplies and stationery',
-      approver: 'Raj Kumar'
-    },
-    {
-      id: 'PO-2025-0141',
-      vendor: 'Industrial Solutions',
-      department: 'Production',
-      requestedBy: 'Amit Patel',
-      amount: 28900,
-      currency: '₹',
-      status: 'sent',
-      priority: 'urgent',
-      dateCreated: '2025-05-26',
-      dateRequired: '2025-06-05',
-      items: 3,
-      description: 'Manufacturing equipment parts',
-      approver: 'Suresh Gupta'
-    },
-    {
-      id: 'PO-2025-0140',
-      vendor: 'Quality Furniture Co',
-      department: 'Admin',
-      requestedBy: 'Neha Agarwal',
-      amount: 12200,
-      currency: '₹',
-      status: 'received',
-      priority: 'low',
-      dateCreated: '2025-05-25',
-      dateRequired: '2025-06-01',
-      items: 8,
-      description: 'Office furniture and fixtures',
-      approver: 'Raj Kumar'
-    },
-    {
-      id: 'PO-2025-0139',
-      vendor: 'SafeTech Security',
-      department: 'Security',
-      requestedBy: 'Rohit Verma',
-      amount: 45000,
-      currency: '₹',
-      status: 'draft',
-      priority: 'medium',
-      dateCreated: '2025-05-24',
-      dateRequired: '2025-06-20',
-      items: 15,
-      description: 'Security cameras and access control system'
-    },
-    {
-      id: 'PO-2025-0138',
-      vendor: 'Green Energy Solutions',
-      department: 'Facilities',
-      requestedBy: 'Anita Reddy',
-      amount: 85000,
-      currency: '₹',
-      status: 'rejected',
-      priority: 'medium',
-      dateCreated: '2025-05-23',
-      dateRequired: '2025-07-01',
-      items: 6,
-      description: 'Solar panel installation',
-      notes: 'Budget constraints - defer to next quarter'
-    }
-  ]
+  const { data = [], isLoading, error } = useQuery<PurchaseOrder[]>({
+    queryKey: ['purchase-orders'],
+    queryFn: getAllPurchaseOrders
+  })
 
   const departments = ['IT Department', 'Admin', 'Production', 'Security', 'Facilities', 'Finance', 'HR']
-  
+
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'approved':
-        return <CheckCircle className="w-4 h-4 text-green-500" />
-      case 'pending':
-        return <AlertCircle className="w-4 h-4 text-yellow-500" />
-      case 'sent':
-        return <CheckCircle className="w-4 h-4 text-blue-500" />
-      case 'received':
-        return <CheckCircle className="w-4 h-4 text-purple-500" />
-      case 'rejected':
-        return <XCircle className="w-4 h-4 text-red-500" />
-      case 'cancelled':
-        return <XCircle className="w-4 h-4 text-gray-500" />
-      case 'draft':
-        return <FileText className="w-4 h-4 text-gray-400" />
-      default:
-        return <Clock className="w-4 h-4 text-gray-500" />
+      case 'approved': return <CheckCircle className="w-4 h-4 text-green-500" />
+      case 'pending': return <AlertCircle className="w-4 h-4 text-yellow-500" />
+      case 'sent': return <CheckCircle className="w-4 h-4 text-blue-500" />
+      case 'received': return <CheckCircle className="w-4 h-4 text-purple-500" />
+      case 'rejected': return <XCircle className="w-4 h-4 text-red-500" />
+      case 'cancelled': return <XCircle className="w-4 h-4 text-gray-500" />
+      case 'draft': return <FileText className="w-4 h-4 text-gray-400" />
+      default: return <Clock className="w-4 h-4 text-gray-500" />
     }
   }
 
@@ -182,23 +73,19 @@ const PurchaseOrdersPage: React.FC = () => {
     return styles[priority as keyof typeof styles] || 'bg-gray-50 text-gray-700 border-gray-200'
   }
 
-  const filteredOrders = purchaseOrders.filter(order => {
-    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.vendor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.description.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredOrders = data.filter(order => {
+    const matchesSearch =
+        order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.vendorId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.description.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter
     const matchesPriority = priorityFilter === 'all' || order.priority === priorityFilter
     const matchesDepartment = departmentFilter === 'all' || order.department === departmentFilter
-    
     return matchesSearch && matchesStatus && matchesPriority && matchesDepartment
   })
 
   const handleSelectOrder = (orderId: string) => {
-    setSelectedOrders(prev => 
-      prev.includes(orderId) 
-        ? prev.filter(id => id !== orderId)
-        : [...prev, orderId]
-    )
+    setSelectedOrders(prev => prev.includes(orderId) ? prev.filter(id => id !== orderId) : [...prev, orderId])
   }
 
   const handleSelectAll = () => {
@@ -210,19 +97,20 @@ const PurchaseOrdersPage: React.FC = () => {
   }
 
   const getStats = () => {
-    const total = purchaseOrders.length
-    const pending = purchaseOrders.filter(po => po.status === 'pending').length
-    const approved = purchaseOrders.filter(po => po.status === 'approved').length
-    const totalValue = purchaseOrders.reduce((sum, po) => sum + po.amount, 0)
-    
+    const total = data.length
+    const pending = data.filter(po => po.status === 'pending').length
+    const approved = data.filter(po => po.status === 'approved').length
+    const totalValue = data.reduce((sum, po) => sum + po.totalAmount, 0)
     return { total, pending, approved, totalValue }
   }
 
   const stats = getStats()
 
+  if (isLoading) return <div className="p-6">Loading purchase orders...</div>
+  if (error) return <div className="p-6 text-red-500">Failed to load purchase orders</div>
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
@@ -443,7 +331,7 @@ const PurchaseOrdersPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{order.vendor}</div>
+                        <div className="text-sm font-medium text-gray-900">{order.vendorId}</div>
                         <div className="text-sm text-gray-500 flex items-center">
                           <Building className="w-3 h-3 mr-1" />
                           {order.department}
@@ -453,7 +341,7 @@ const PurchaseOrdersPage: React.FC = () => {
                     <td className="px-6 py-4">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {order.currency}{order.amount.toLocaleString()}
+                          {order.currency}{order.totalAmount.toLocaleString()}
                         </div>
                         <div className="text-sm text-gray-500 flex items-center">
                           <Package className="w-3 h-3 mr-1" />
@@ -475,10 +363,10 @@ const PurchaseOrdersPage: React.FC = () => {
                     <td className="px-6 py-4">
                       <div>
                         <div className="text-sm text-gray-900">
-                          Created: {new Date(order.dateCreated).toLocaleDateString()}
+                          Created: {new Date(order.createdAt).toLocaleDateString()}
                         </div>
                         <div className="text-sm text-gray-500">
-                          Required: {new Date(order.dateRequired).toLocaleDateString()}
+                          Required: {new Date(order.expectedDelivery).toLocaleDateString()}
                         </div>
                       </div>
                     </td>
