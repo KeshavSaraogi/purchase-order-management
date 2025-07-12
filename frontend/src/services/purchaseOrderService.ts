@@ -31,6 +31,6 @@ export interface PurchaseOrder {
 }
 
 export const getAllPurchaseOrders = async (): Promise<PurchaseOrder[]> => {
-  const response = await api.get('/purchase-orders')
+  const response = await api.get('/api/purchase-orders')
   return response.data
 }
