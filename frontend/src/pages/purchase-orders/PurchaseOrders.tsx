@@ -1,34 +1,21 @@
 import React, { useState } from 'react'
 import { 
-  Plus, 
-  Search, 
-  Filter, 
-  Download, 
-  Eye, 
-  Edit, 
-  Trash2, 
-  CheckCircle, 
-  XCircle, 
-  AlertCircle, 
-  Clock,
-  FileText,
-  DollarSign,
-  Building,
-  User,
-  Package
+  Plus, Search, Filter, Download, Eye, Edit, Trash2,
+  CheckCircle, XCircle, AlertCircle, Clock,
+  FileText, DollarSign, Building, User, Package
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { getAllPurchaseOrders } from '../../services/purchaseOrderService'
-import  type { PurchaseOrder } from '../../services/purchaseOrderService'
+import type { PurchaseOrder } from '../../services/purchaseOrderService'
+import { Link } from 'react-router-dom'
 
 const PurchaseOrdersPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [priorityFilter, setPriorityFilter] = useState('all')
   const [departmentFilter, setDepartmentFilter] = useState('all')
-  const [showFilters, setShowFilters] = useState(false)
-  const [showCreateModal, setShowCreateModal] = useState(false)
   const [selectedOrders, setSelectedOrders] = useState<string[]>([])
+  const [showFilters, setShowFilters] = useState(false)
 
   const { data = [], isLoading, error } = useQuery<PurchaseOrder[]>({
     queryKey: ['purchase-orders'],
@@ -75,9 +62,9 @@ const PurchaseOrdersPage: React.FC = () => {
 
   const filteredOrders = data.filter(order => {
     const matchesSearch =
-        order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.vendorId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.description.toLowerCase().includes(searchTerm.toLowerCase())
+      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.vendorId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.description.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter
     const matchesPriority = priorityFilter === 'all' || order.priority === priorityFilter
     const matchesDepartment = departmentFilter === 'all' || order.department === departmentFilter
@@ -111,34 +98,21 @@ const PurchaseOrdersPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b border-gray-200">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Purchase Orders</h1>
-              <p className="text-gray-600">Manage and track all purchase orders</p>
-            </div>
-            <div className="flex space-x-3">
-              <button 
-                onClick={() => setShowFilters(!showFilters)}
-                className="btn btn-secondary"
-              >
-                <Filter className="w-4 h-4 mr-2" />
-                Filters
-              </button>
-              <button className="btn btn-secondary">
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </button>
-              <button 
-                onClick={() => setShowCreateModal(true)}
-                className="btn btn-primary"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                New Purchase Order
-              </button>
-            </div>
-          </div>
+      <div className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Purchase Orders</h1>
+          <p className="text-gray-600">Manage and track all purchase orders</p>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={() => setShowFilters(prev => !prev)} className="btn btn-secondary">
+            <Filter className="w-4 h-4 mr-2" /> Filters
+          </button>
+          <button className="btn btn-secondary">
+            <Download className="w-4 h-4 mr-2" /> Export
+          </button>
+          <Link to="/purchase-orders/new" className="btn btn-primary flex items-center">
+            <Plus className="w-4 h-4 mr-2" /> New Purchase Order
+          </Link>
         </div>
       </div>
 
@@ -402,13 +376,10 @@ const PurchaseOrdersPage: React.FC = () => {
               </p>
               {!searchTerm && statusFilter === 'all' && priorityFilter === 'all' && departmentFilter === 'all' && (
                 <div className="mt-6">
-                  <button 
-                    onClick={() => setShowCreateModal(true)}
-                    className="btn btn-primary"
-                  >
+                  <Link to="/purchase-orders/new" className="btn btn-primary flex items-center">
                     <Plus className="w-4 h-4 mr-2" />
                     New Purchase Order
-                  </button>
+                  </Link>
                 </div>
               )}
             </div>
@@ -416,28 +387,7 @@ const PurchaseOrdersPage: React.FC = () => {
         </div>
       </div>
 
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3 text-center">
-              <h3 className="text-lg font-medium text-gray-900">Create New Purchase Order</h3>
-              <div className="mt-2 px-7 py-3">
-                <p className="text-sm text-gray-500">
-                  Create Purchase Order form will be implemented here.
-                </p>
-              </div>
-              <div className="items-center px-4 py-3">
-                <button
-                  onClick={() => setShowCreateModal(false)}
-                  className="btn btn-secondary w-full"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      
     </div>
   )
 }
