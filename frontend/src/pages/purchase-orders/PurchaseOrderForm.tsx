@@ -29,9 +29,28 @@ const defaultValues: FormValues = {
   lineItems: [{ itemName: '', quantity: 1, unitPrice: 0 }]
 }
 
-const PurchaseOrderForm: React.FC<{ onSubmit: (data: FormValues) => void }> = ({ onSubmit }) => {
-  const { register, control, handleSubmit, watch, formState: { errors } } = useForm<FormValues>({
-    defaultValues
+type Props = {
+  onSubmit: (data: FormValues) => void
+  defaultValues?: FormValues
+}
+const PurchaseOrderForm: React.FC<Props> = ({ onSubmit, defaultValues }) => {
+  const {
+    register,
+    control,
+    handleSubmit,
+    watch,
+    formState: { errors }
+  } = useForm<FormValues>({
+    defaultValues: defaultValues || {
+      vendor: '',
+      department: '',
+      priority: 'medium',
+      date: '',
+      expectedDelivery: '',
+      description: '',
+      notes: '',
+      lineItems: [{ itemName: '', quantity: 1, unitPrice: 0 }]
+    }
   })
 
   const { fields, append, remove } = useFieldArray({

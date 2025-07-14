@@ -1,5 +1,6 @@
 import { api } from './api'
 import axios from 'axios'
+import type { FormValues } from '../pages/purchase-orders/PurchaseOrderForm'
 
 export type PurchaseOrderStatus =
   | 'draft'
@@ -31,12 +32,26 @@ export interface PurchaseOrder {
   items: number
 }
 
+// GET all purchase orders
 export const getAllPurchaseOrders = async (): Promise<PurchaseOrder[]> => {
   const response = await api.get('/api/purchase-orders')
   return response.data
 }
 
+// POST new purchase order
 export const createPurchaseOrder = async (data: any) => {
   const response = await axios.post('/api/purchase-orders', data)
+  return response.data
+}
+
+// GET single purchase order by ID
+export const getPurchaseOrderById = async (id: string) => {
+  const response = await axios.get(`/api/purchase-orders/${id}`)
+  return response.data
+}
+
+// PUT update purchase order by ID
+export const updatePurchaseOrder = async (id: string, data: FormValues) => {
+  const response = await axios.put(`/api/purchase-orders/${id}`, data)
   return response.data
 }
