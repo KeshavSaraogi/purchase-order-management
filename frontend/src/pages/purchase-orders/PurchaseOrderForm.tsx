@@ -18,17 +18,6 @@ export type FormValues = {
   lineItems: LineItem[]
 }
 
-const defaultValues: FormValues = {
-  vendor: '',
-  department: '',
-  priority: 'medium',
-  date: '',
-  expectedDelivery: '',
-  description: '',
-  notes: '',
-  lineItems: [{ itemName: '', quantity: 1, unitPrice: 0 }]
-}
-
 type Props = {
   onSubmit: (data: FormValues) => void
   defaultValues?: FormValues
