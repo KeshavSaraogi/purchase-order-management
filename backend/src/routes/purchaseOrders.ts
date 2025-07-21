@@ -17,53 +17,66 @@ router.get('/', async (req, res) => {
 })
 
 router.post('/', async (req, res) => {
-  const {
-    vendor, department, priority, date,
-    expectedDelivery, description, notes, lineItems
-  } = req.body
+  try {
+    const {
+      vendor, department, priority, date,
+      expectedDelivery, description, notes, lineItems
+    } = req.body
 
-  if (!vendor || !department || !priority || !date || !expectedDelivery || !description || !lineItems) {
-    return res.status(400).json({ error: 'Missing required fields' })
+    if (!vendor || !department || !priority || !date || !expectedDelivery || !description || !lineItems) {
+      return res.status(400).json({ error: 'Missing required fields' })
+    }
+
+    const totalAmount = lineItems.reduce(
+      (sum: number, item: { quantity: number; unitPrice: number }) =>
+        sum + item.quantity * item.unitPrice, 0
+    )
+
+    const { data: poData, error: poError } = await supabase
+      .from('purchase_orders')
+      .insert([{
+        vendor,
+        department,
+        priority,
+        order_date: date,
+        expected_delivery: expectedDelivery,
+        description,
+        notes,
+        total_amount: totalAmount
+      }])
+      .select()
+
+    if (poError) {
+      console.error('Purchase order insert error:', poError)
+      return res.status(500).json({ error: poError.message })
+    }
+
+    const purchaseOrderId = poData?.[0]?.id
+
+    const itemsToInsert = lineItems.map((item: { itemName: string; quantity: number; unitPrice: number }) => ({
+      purchase_order_id: purchaseOrderId,
+      item_name: item.itemName,
+      quantity: item.quantity,
+      unit_price: item.unitPrice
+    }))
+
+    const { error: itemError } = await supabase
+      .from('purchase_order_items')
+      .insert(itemsToInsert)
+
+    if (itemError) {
+      console.error('Line items insert error:', itemError)
+      return res.status(500).json({ error: itemError.message })
+    }
+
+    return res.status(201).json({ message: 'Purchase order created successfully', id: purchaseOrderId })
+
+  } catch (err) {
+    console.error('Unhandled error in POST /api/purchase-orders:', err)
+    return res.status(500).json({ error: 'Internal Server Error' })
   }
-
-  const totalAmount = lineItems.reduce(
-    (sum: number, item: { quantity: number; unitPrice: number }) =>
-      sum + item.quantity * item.unitPrice, 0
-  )
-
-  const { data: poData, error: poError } = await supabase
-    .from('purchase_orders')
-    .insert([{
-      vendor,
-      department,
-      priority,
-      order_date: date,
-      expected_delivery: expectedDelivery,
-      description,
-      notes,
-      total_amount: totalAmount
-    }])
-    .select()
-
-  if (poError) return res.status(500).json({ error: poError.message })
-
-  const purchaseOrderId = poData[0].id
-
-  const itemsToInsert = lineItems.map((item: { itemName: string; quantity: number; unitPrice: number }) => ({
-    purchase_order_id: purchaseOrderId,
-    item_name: item.itemName,
-    quantity: item.quantity,
-    unit_price: item.unitPrice
-  }))
-
-  const { error: itemError } = await supabase
-    .from('purchase_order_items')
-    .insert(itemsToInsert)
-
-  if (itemError) return res.status(500).json({ error: itemError.message })
-
-  res.status(201).json({ message: 'Purchase order created successfully', id: purchaseOrderId })
 })
+
 
 router.put('/:id', async (req, res) => {
   const id = req.params.id
