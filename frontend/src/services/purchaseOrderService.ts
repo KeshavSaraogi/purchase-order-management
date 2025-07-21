@@ -2,6 +2,8 @@ import { api } from './api'
 import axios from 'axios'
 import type { FormValues } from '../pages/purchase-orders/PurchaseOrderForm'
 
+const baseURL = 'https://purchase-order-management-6fb7.onrender.com'
+
 export type PurchaseOrderStatus =
   | 'draft'
   | 'pending'
@@ -39,8 +41,8 @@ export const getAllPurchaseOrders = async (): Promise<PurchaseOrder[]> => {
 }
 
 // POST new purchase order
-export const createPurchaseOrder = async (data: any) => {
-  const response = await axios.post('/api/purchase-orders', data)
+export const createPurchaseOrder = async (payload: FormValues) => {
+  const response = await axios.post(`${baseURL}/purchase-orders`, payload)
   return response.data
 }
 
