@@ -42,7 +42,7 @@ export const getAllPurchaseOrders = async (): Promise<PurchaseOrder[]> => {
 
 // POST new purchase order
 export const createPurchaseOrder = async (payload: FormValues) => {
-  const response = await axios.post(`${baseURL}/purchase-orders`, payload)
+  const response = await axios.post(`${baseURL}/api/purchase-orders`, payload)
   return response.data
 }
 
